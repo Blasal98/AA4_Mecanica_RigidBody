@@ -17,7 +17,20 @@ namespace Cube {
 	extern void setupCube();
 	extern void cleanupCube();
 	extern void updateCube(const glm::mat4& transform);
+	//extern void drawCube();
+
+	glm::vec3 scale = glm::vec3(1,1,1);
+
+	struct CubeStruct {
+		glm::vec3 position;
+		glm::mat3 rotation;
+		glm::vec3 linearMomentum;
+		glm::vec3 angularMomentum;
+
+	};
+
 }
+Cube::CubeStruct ourCube;
 
 
 void MyPhysicsInit() {
@@ -26,7 +39,16 @@ void MyPhysicsInit() {
 }
 void MyPhysicsUpdate(float dt) {
 	if (renderCube) {
-		Cube::updateCube(glm::mat4(1.f));
+		glm::mat4 translation = glm::mat4();
+		glm::mat4 rotation = glm::mat4();
+		glm::mat4 scale = glm::scale(glm::mat4(),Cube::scale);
+
+		translation = glm::translate(glm::mat4(),glm::vec3(0,0.5f,0));
+		rotation = glm::rotate(glm::mat4(), glm::radians(90.f), glm::vec3(1, 0, 0));
+
+		Cube::updateCube(translation * rotation * scale);
+
+
 	}
 }
 void MyPhysicsCleanup() {

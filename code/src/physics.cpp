@@ -22,15 +22,29 @@ namespace Cube {
 
 	glm::vec3 scale = glm::vec3(1,1,1);
 	int mass = 1;
-
 	glm::vec3 gravity = glm::vec3(0,-9.81f,0);
 
 	struct CubeStruct {
 		glm::vec3 position;
 		glm::vec3 rotation;
+
 		glm::vec3 linearMomentum;
 		glm::vec3 angularMomentum;
 		glm::vec3 torque;
+
+		void cubeReset() {
+			
+			position = glm::vec3(rand() % 7 - 3, rand() % 7 + 2, rand() % 7 - 3);
+			rotation = glm::vec3(glm::radians((float)(rand() % 360)), glm::radians((float)(rand() % 360)), glm::radians((float)(rand() % 360)));
+
+			linearMomentum = glm::vec3(0, 0, 0);
+			angularMomentum = glm::vec3(0, 0, 0);
+			torque = glm::vec3(0, 0, 0);
+		}
+
+		CubeStruct() {
+			cubeReset();
+		}
 	};
 
 }
@@ -38,13 +52,11 @@ Cube::CubeStruct *ourCube;
 
 
 void MyPhysicsInit() {
-	renderCube = true;
-	Cube::setupCube();
 	srand(time(NULL));
 
-	ourCube = new Cube::CubeStruct();
-	ourCube->position = glm::vec3(rand() % 7 - 3, rand() % 7 + 2, rand() % 7 - 3);
-	ourCube->rotation = glm::vec3(glm::radians((float)(rand() % 360)), glm::radians((float)(rand() % 360)), glm::radians((float)(rand() % 360)));
+	renderCube = true; //activem cub
+	Cube::setupCube(); //el setejem
+	ourCube = new Cube::CubeStruct(); //el creem
 	
 	glm::mat4 translation = glm::translate(glm::mat4(), ourCube->position);
 	glm::mat4 rotation = glm::mat4();
@@ -54,6 +66,8 @@ void MyPhysicsInit() {
 	glm::mat4 scale = glm::scale(glm::mat4(), Cube::scale);
 	
 	Cube::updateCube(translation * rotation * scale);
+
+	
 }
 
 void MyPhysicsUpdate(float dt) {
@@ -68,7 +82,8 @@ void MyPhysicsUpdate(float dt) {
 
 		Cube::updateCube(translation * rotation * scale);*/
 
-		ourCube->torque = glm::cross(ourCube->position, Cube::gravity);
+		//ourCube->torque = glm::cross(ourCube->position, Cube::gravity);
+		//ourCube->linearMomentum 
 	}
 }
 void MyPhysicsCleanup() {

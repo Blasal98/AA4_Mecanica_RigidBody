@@ -22,11 +22,12 @@ namespace Cube {
 
 	glm::vec3 scale = glm::vec3(1,1,1);
 	int mass = 1;
-	glm::vec3 gravity = glm::vec3(0,-9.81f,0);
+	glm::vec3 gravity = glm::vec3(0,-9.81f,0) * (float)mass;
 
 	struct CubeStruct {
 		glm::vec3 position;
 		glm::vec3 rotation;
+		glm::vec3 velocity;
 
 		glm::vec3 linearMomentum;
 		glm::vec3 angularMomentum;
@@ -37,6 +38,7 @@ namespace Cube {
 			position = glm::vec3(rand() % 7 - 3, rand() % 7 + 2, rand() % 7 - 3);
 			rotation = glm::vec3(glm::radians((float)(rand() % 360)), glm::radians((float)(rand() % 360)), glm::radians((float)(rand() % 360)));
 
+			velocity = glm::vec3(0, 0, 0);
 			linearMomentum = glm::vec3(0, 0, 0);
 			angularMomentum = glm::vec3(0, 0, 0);
 			torque = glm::vec3(0, 0, 0);
@@ -73,17 +75,19 @@ void MyPhysicsInit() {
 void MyPhysicsUpdate(float dt) {
 	if (renderCube) {
 
-		/*glm::mat4 translation = glm::mat4();
+		
+		ourCube->linearMomentum += dt * Cube::gravity;
+		ourCube->angularMomentum += dt * ourCube->torque;
+		ourCube->velocity = ourCube->linearMomentum / (float)Cube::mass;
+		ourCube->position += dt * ourCube->velocity;
+
+		glm::mat4 translation = glm::translate(glm::mat4(), ourCube->position);
 		glm::mat4 rotation = glm::mat4();
-		glm::mat4 scale = glm::scale(glm::mat4(),Cube::scale);
+		rotation = glm::rotate(rotation, ourCube->rotation.x, glm::vec3(1, 0, 0));
+		rotation = glm::rotate(rotation, ourCube->rotation.y, glm::vec3(0, 1, 0));
+		rotation = glm::rotate(rotation, ourCube->rotation.z, glm::vec3(0, 0, 1));
 
-		translation = glm::translate(glm::mat4(),glm::vec3(0,0.5f,0));
-		rotation = glm::rotate(glm::mat4(), glm::radians(90.f), glm::vec3(1, 0, 0));
-
-		Cube::updateCube(translation * rotation * scale);*/
-
-		//ourCube->torque = glm::cross(ourCube->position, Cube::gravity);
-		//ourCube->linearMomentum 
+		Cube::updateCube(translation * rotation);
 	}
 }
 void MyPhysicsCleanup() {

@@ -29,9 +29,21 @@ namespace Cube {
 
 	glm::mat3 setupRotationMatrix(glm::vec3 rotationAngles) { //si falla algo segurament sira aixo
 		
-		glm::mat3 rotationX = glm::mat3(1,0,0,  0,glm::cos(rotationAngles.x),-glm::sin(rotationAngles.x),  0, glm::sin(rotationAngles.x), glm::cos(rotationAngles.x));
-		glm::mat3 rotationY = glm::mat3(glm::cos(rotationAngles.y),0, glm::sin(rotationAngles.y),  0,1,0,  -glm::sin(rotationAngles.y),0, glm::cos(rotationAngles.y));
-		glm::mat3 rotationZ = glm::mat3(glm::cos(rotationAngles.z), -glm::sin(rotationAngles.z),0,  glm::sin(rotationAngles.z), glm::cos(rotationAngles.z),0,  0,0,1);
+		glm::mat3 rotationX; //= glm::mat3(1,0,0,  0,glm::cos(rotationAngles.x),-glm::sin(rotationAngles.x),  0, glm::sin(rotationAngles.x), glm::cos(rotationAngles.x));
+		glm::mat3 rotationY; //= glm::mat3(glm::cos(rotationAngles.y),0, glm::sin(rotationAngles.y),  0,1,0,  -glm::sin(rotationAngles.y),0, glm::cos(rotationAngles.y));
+		glm::mat3 rotationZ; //= glm::mat3(glm::cos(rotationAngles.z), -glm::sin(rotationAngles.z),0,  glm::sin(rotationAngles.z), glm::cos(rotationAngles.z),0,  0,0,1);
+
+		rotationX[0][0] = 1; rotationX[0][1] = 0; rotationX[0][2] = 0;
+		rotationX[1][0] = 0; rotationX[1][1] = glm::cos(rotationAngles.x); rotationX[1][2] = -glm::sin(rotationAngles.x);
+		rotationX[2][0] = 0; rotationX[2][1] = glm::sin(rotationAngles.x); rotationX[2][2] = glm::cos(rotationAngles.x);
+
+		rotationY[0][0] = glm::cos(rotationAngles.y); rotationY[0][1] = 0; rotationY[0][2] = glm::sin(rotationAngles.y);
+		rotationY[1][0] = 0; rotationY[1][1] = 1; rotationY[1][2] = 0;
+		rotationY[2][0] = -glm::sin(rotationAngles.y); rotationY[2][1] = 0; rotationY[2][2] = glm::cos(rotationAngles.y);
+
+		rotationZ[0][0] = glm::cos(rotationAngles.z); rotationZ[0][1] = -glm::sin(rotationAngles.z); rotationZ[0][2] = 0;
+		rotationZ[1][0] = glm::sin(rotationAngles.z); rotationZ[1][1] = glm::cos(rotationAngles.z); rotationZ[1][2] = 0;
+		rotationZ[2][0] = 0; rotationZ[2][1] = 0; rotationZ[2][2] = 1;
 
 		return rotationX * rotationY * rotationZ;
 	}
@@ -65,9 +77,10 @@ namespace Cube {
 
 		void cubeReset() {
 			
-			position = glm::vec3(rand() % 7 - 3, rand() % 7 + 2, rand() % 7 - 3);
+			//position = glm::vec3(rand() % 7 - 3, rand() % 7 + 2, rand() % 7 - 3);
+			position = glm::vec3(0,5,0);
 			//rotation = glm::vec3(glm::radians((float)(rand() % 360)), glm::radians((float)(rand() % 360)), glm::radians((float)(rand() % 360)));
-			rotation = glm::vec3(glm::radians(45.f),0,0);
+			rotation = glm::vec3(glm::radians(45.f),0, glm::radians(45.f));
 
 			velocity = glm::vec3(0, 0, 0);
 			linearMomentum = glm::vec3(0, 0, 0);
@@ -98,6 +111,9 @@ void printSpecs() {
 	std::cout << "Position: " << ourCube->position.x << " " << ourCube->position.y << " " << ourCube->position.z << std::endl;
 	std::cout << "Rotation: " << ourCube->rotation.x << " " << ourCube->rotation.y << " " << ourCube->rotation.z << std::endl;
 	std::cout << "Velocity: " << ourCube->velocity.x << " " << ourCube->velocity.y << " " << ourCube->velocity.z << std::endl;
+	std::cout << "Force: " << ourCube->totalForce.x << " " << ourCube->totalForce.y << " " << ourCube->totalForce.z << std::endl;
+	std::cout << "Torque: " << ourCube->torque.x << " " << ourCube->torque.y << " " << ourCube->torque.z << std::endl;
+	std::cout << "Num Forces: " << ourCube->forces.size() << std::endl;
 
 	std::cout << "Ang Vel: " << ourCube->angularVelocity.x << " " << ourCube->angularVelocity.y << " " << ourCube->angularVelocity.z << std::endl;
 	std::cout << "Ang Mom: " << ourCube->angularMomentum.x << " " << ourCube->angularMomentum.y << " " << ourCube->angularMomentum.z << std::endl;
@@ -113,6 +129,13 @@ void printSpecs() {
 	for (int i = 0; i < 3; i++) {
 		for (int j = 0; j < 3; j++) {
 			std::cout << ourCube->inertiaMatrix[i][j] << " ";
+		}
+		std::cout << std::endl;
+	}
+	std::cout << "Rotation MATRIX: " << std::endl;
+	for (int i = 0; i < 3; i++) {
+		for (int j = 0; j < 3; j++) {
+			std::cout << ourCube->rotationMatrix[i][j] << " ";
 		}
 		std::cout << std::endl;
 	}
@@ -143,7 +166,7 @@ void MyPhysicsUpdate(float dt) {
 
 		ourCube->totalForce = glm::vec3(0,0,0);
 		ourCube->torque = glm::vec3(0,0,0);
-		for (int i = 0; i++; i < ourCube->forces.size()) {
+		for (int i = 0; i < ourCube->forces.size(); i++) {
 			ourCube->totalForce += ourCube->forces.at(i).force;
 			ourCube->torque += glm::cross(ourCube->forces.at(i).point - ourCube->position, ourCube->forces[i].force);
 		}
@@ -167,7 +190,7 @@ void MyPhysicsUpdate(float dt) {
 		ourCube->rotationMatrix += dt * (ourCube->angularVelocity * ourCube->rotationMatrix);
 		ourCube->rotation += dt * glm::vec3(ourCube->angularVelocity.x, ourCube->angularVelocity.y, ourCube->angularVelocity.z);
 		
-		//printSpecs();
+		printSpecs();
 	}
 }
 void MyPhysicsCleanup() {

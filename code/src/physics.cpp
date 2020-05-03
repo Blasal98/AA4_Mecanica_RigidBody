@@ -25,7 +25,7 @@ namespace Cube {
 	glm::vec3 scale = glm::vec3(1,1,1);
 	int mass = 1;
 	glm::vec3 gravity = glm::vec3(0,-9.81f,0) * (float)mass;
-	
+	bool showSpecs = true;
 
 	glm::mat3 setupRotationMatrix(glm::vec3 rotationAngles) { //si falla algo segurament sira aixo
 		
@@ -112,39 +112,41 @@ namespace Cube {
 Cube::CubeStruct *ourCube;
 
 void printSpecs() {
-	std::cout << "--------------------------------------------------------------------" << std::endl;
-	std::cout << "Position: " << ourCube->position.x << " " << ourCube->position.y << " " << ourCube->position.z << std::endl;
-	std::cout << "Rotation: " << ourCube->rotation.x << " " << ourCube->rotation.y << " " << ourCube->rotation.z << std::endl;
-	std::cout << "Velocity: " << ourCube->velocity.x << " " << ourCube->velocity.y << " " << ourCube->velocity.z << std::endl;
-	std::cout << "Force: " << ourCube->totalForce.x << " " << ourCube->totalForce.y << " " << ourCube->totalForce.z << std::endl;
-	std::cout << "Torque: " << ourCube->torque.x << " " << ourCube->torque.y << " " << ourCube->torque.z << std::endl;
-	//std::cout << "Num Forces: " << ourCube->forces.size() << std::endl;
+	if (Cube::showSpecs) {
+		std::cout << "--------------------------------------------------------------------" << std::endl;
+		std::cout << "Position: " << ourCube->position.x << " " << ourCube->position.y << " " << ourCube->position.z << std::endl;
+		std::cout << "Rotation: " << ourCube->rotation.x << " " << ourCube->rotation.y << " " << ourCube->rotation.z << std::endl;
+		std::cout << "Velocity: " << ourCube->velocity.x << " " << ourCube->velocity.y << " " << ourCube->velocity.z << std::endl;
+		std::cout << "Force: " << ourCube->totalForce.x << " " << ourCube->totalForce.y << " " << ourCube->totalForce.z << std::endl;
+		std::cout << "Torque: " << ourCube->torque.x << " " << ourCube->torque.y << " " << ourCube->torque.z << std::endl;
+		//std::cout << "Num Forces: " << ourCube->forces.size() << std::endl;
 
-	std::cout << "Ang Vel: " << ourCube->angularVelocity.x << " " << ourCube->angularVelocity.y << " " << ourCube->angularVelocity.z << std::endl;
-	std::cout << "Ang Mom: " << ourCube->angularMomentum.x << " " << ourCube->angularMomentum.y << " " << ourCube->angularMomentum.z << std::endl;
-	std::cout << "Lin Mom: " << ourCube->linearMomentum.x << " " << ourCube->linearMomentum.y << " " << ourCube->linearMomentum.z << std::endl;
-	std::cout << "Inertia BODY: " << std::endl;
-	for (int i = 0; i < 3; i++) {
-		for (int j = 0; j < 3; j++) {
-			std::cout << ourCube->inertiaBody[i][j] << " ";
+		std::cout << "Ang Vel: " << ourCube->angularVelocity.x << " " << ourCube->angularVelocity.y << " " << ourCube->angularVelocity.z << std::endl;
+		std::cout << "Ang Mom: " << ourCube->angularMomentum.x << " " << ourCube->angularMomentum.y << " " << ourCube->angularMomentum.z << std::endl;
+		std::cout << "Lin Mom: " << ourCube->linearMomentum.x << " " << ourCube->linearMomentum.y << " " << ourCube->linearMomentum.z << std::endl;
+		std::cout << "Inertia BODY: " << std::endl;
+		/*for (int i = 0; i < 3; i++) {
+			for (int j = 0; j < 3; j++) {
+				std::cout << ourCube->inertiaBody[i][j] << " ";
+			}
+			std::cout << std::endl;
+		}*/
+		std::cout << "Inertia MATRIX: " << std::endl;
+		for (int i = 0; i < 3; i++) {
+			for (int j = 0; j < 3; j++) {
+				std::cout << ourCube->inertiaMatrix[i][j] << " ";
+			}
+			std::cout << std::endl;
 		}
-		std::cout << std::endl;
-	}
-	std::cout << "Inertia MATRIX: " << std::endl;
-	for (int i = 0; i < 3; i++) {
-		for (int j = 0; j < 3; j++) {
-			std::cout << ourCube->inertiaMatrix[i][j] << " ";
+		std::cout << "Rotation MATRIX: " << std::endl;
+		for (int i = 0; i < 3; i++) {
+			for (int j = 0; j < 3; j++) {
+				std::cout << ourCube->rotationMatrix[i][j] << " ";
+			}
+			std::cout << std::endl;
 		}
-		std::cout << std::endl;
+		std::cout << "--------------------------------------------------------------------" << std::endl;
 	}
-	std::cout << "Rotation MATRIX: " << std::endl;
-	for (int i = 0; i < 3; i++) {
-		for (int j = 0; j < 3; j++) {
-			std::cout << ourCube->rotationMatrix[i][j] << " ";
-		}
-		std::cout << std::endl;
-	}
-	std::cout << "--------------------------------------------------------------------" << std::endl;
 }
 
 void MyPhysicsInit() {
@@ -216,7 +218,7 @@ void GUI() {
 		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);//FrameRate
 		//Exemple_GUI();
 	}
-	//ImGui::
+	ImGui::Checkbox("Show Specs: ", &Cube::showSpecs);
 	
 	ImGui::End();
 }

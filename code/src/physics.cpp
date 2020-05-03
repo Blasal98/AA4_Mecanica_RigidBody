@@ -25,7 +25,7 @@ namespace Cube {
 	glm::vec3 scale = glm::vec3(1,1,1);
 	int mass = 1;
 	glm::vec3 gravity = glm::vec3(0,-9.81f,0) * (float)mass;
-	glm::mat3 inertia = glm::mat3(1/12,0,0,  0,1/12,0,  0,0,1/12);
+	
 
 	glm::mat3 setupRotationMatrix(glm::vec3 rotationAngles) { //si falla algo segurament sira aixo
 		
@@ -59,6 +59,7 @@ namespace Cube {
 
 		glm::mat3 inertiaMatrix;
 		glm::mat3 rotationMatrix;
+		glm::mat3 inertiaBody;
 
 		std::vector<ForceOnPoint> forces;
 
@@ -74,11 +75,13 @@ namespace Cube {
 			torque = glm::vec3(0, 0, 0);
 			totalForce = glm::vec3(0, 0, 0);
 
+			inertiaBody = inertiaBody * (1.f / 12.f * 2.f);
 			rotationMatrix = setupRotationMatrix(rotation);
-			inertiaMatrix = rotationMatrix * inertia * glm::transpose(rotationMatrix);
+			inertiaMatrix = rotationMatrix * inertiaBody * glm::transpose(rotationMatrix);
+			
 
 			forces.clear();
-			forces.push_back(ForceOnPoint(gravity,glm::vec3(0,0,0)));
+			forces.push_back(ForceOnPoint(gravity,glm::vec3(0,0,0))); //sta mal
 			
 		}
 
@@ -90,6 +93,31 @@ namespace Cube {
 }
 Cube::CubeStruct *ourCube;
 
+void printSpecs() {
+	std::cout << "--------------------------------------------------------------------" << std::endl;
+	std::cout << "Position: " << ourCube->position.x << " " << ourCube->position.y << " " << ourCube->position.z << std::endl;
+	std::cout << "Rotation: " << ourCube->rotation.x << " " << ourCube->rotation.y << " " << ourCube->rotation.z << std::endl;
+	std::cout << "Velocity: " << ourCube->velocity.x << " " << ourCube->velocity.y << " " << ourCube->velocity.z << std::endl;
+
+	std::cout << "Ang Vel: " << ourCube->angularVelocity.x << " " << ourCube->angularVelocity.y << " " << ourCube->angularVelocity.z << std::endl;
+	std::cout << "Ang Mom: " << ourCube->angularMomentum.x << " " << ourCube->angularMomentum.y << " " << ourCube->angularMomentum.z << std::endl;
+	std::cout << "Lin Mom: " << ourCube->linearMomentum.x << " " << ourCube->linearMomentum.y << " " << ourCube->linearMomentum.z << std::endl;
+	std::cout << "Inertia BODY: " << std::endl;
+	for (int i = 0; i < 3; i++) {
+		for (int j = 0; j < 3; j++) {
+			std::cout << ourCube->inertiaBody[i][j] << " ";
+		}
+		std::cout << std::endl;
+	}
+	std::cout << "Inertia MATRIX: " << std::endl;
+	for (int i = 0; i < 3; i++) {
+		for (int j = 0; j < 3; j++) {
+			std::cout << ourCube->inertiaMatrix[i][j] << " ";
+		}
+		std::cout << std::endl;
+	}
+	std::cout << "--------------------------------------------------------------------" << std::endl;
+}
 
 void MyPhysicsInit() {
 	srand(time(NULL));
@@ -107,7 +135,7 @@ void MyPhysicsInit() {
 	
 	Cube::updateCube(translation * rotation * scale);
 
-	
+	printSpecs();
 }
 
 void MyPhysicsUpdate(float dt) {
@@ -125,7 +153,7 @@ void MyPhysicsUpdate(float dt) {
 		ourCube->velocity = ourCube->linearMomentum / (float)Cube::mass;
 		ourCube->position += dt * ourCube->velocity;
 
-		ourCube->inertiaMatrix = ourCube->rotationMatrix * Cube::inertia * glm::transpose(ourCube->rotationMatrix);
+		ourCube->inertiaMatrix = ourCube->rotationMatrix * ourCube->inertiaBody * glm::transpose(ourCube->rotationMatrix);
 		ourCube->angularVelocity = glm::inverse(ourCube->inertiaMatrix) * ourCube->angularMomentum;
 
 		glm::mat4 translation = glm::translate(glm::mat4(), ourCube->position);
@@ -139,10 +167,7 @@ void MyPhysicsUpdate(float dt) {
 		ourCube->rotationMatrix += dt * (ourCube->angularVelocity * ourCube->rotationMatrix);
 		ourCube->rotation += dt * glm::vec3(ourCube->angularVelocity.x, ourCube->angularVelocity.y, ourCube->angularVelocity.z);
 		
-		std::cout << "Position: " << ourCube->position.x << " " << ourCube->position.y << " " << ourCube->position.z << std::endl;
-		std::cout << "Rotation: " << ourCube->rotation.x << " " << ourCube->rotation.y << " " << ourCube->rotation.z << std::endl;
-		std::cout << "Ang Vel: " << ourCube->angularVelocity.x << " " << ourCube->angularVelocity.y << " " << ourCube->angularVelocity.z << std::endl;
-		std::cout << "Ang Mom: " << ourCube->angularMomentum.x << " " << ourCube->angularMomentum.y << " " << ourCube->angularMomentum.z << std::endl;
+		//printSpecs();
 	}
 }
 void MyPhysicsCleanup() {
@@ -159,6 +184,7 @@ void GUI() {
 		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);//FrameRate
 		//Exemple_GUI();
 	}
+	//ImGui::
 	
 	ImGui::End();
 }

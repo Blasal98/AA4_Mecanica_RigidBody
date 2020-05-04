@@ -72,6 +72,15 @@ namespace Cube {
 		return glm::vec3(xAngle, yAngle, zAngle);
 	}
 
+	glm::mat3 generateWMatrix(glm::vec3 w) {
+		glm::mat3 returnMatrix = glm::mat3();
+		returnMatrix[0][0] = 0; returnMatrix[0][1] = -w.z; returnMatrix[0][2] = w.y;
+		returnMatrix[1][0] = w.z; returnMatrix[1][1] = 0; returnMatrix[1][2] = -w.x;
+		returnMatrix[2][0] = -w.y; returnMatrix[2][1] = w.x; returnMatrix[2][2] = 0;
+
+		return returnMatrix;
+	}
+
 	struct ForceOnPoint {
 		glm::vec3 force;
 		glm::vec3 point;
@@ -116,14 +125,15 @@ namespace Cube {
 			torque = glm::vec3(0, 0, 0);
 			totalForce = glm::vec3(0, 0, 0);
 
+			inertiaBody = glm::mat3();
 			inertiaBody = inertiaBody * (1.f / 12.f * 2.f);
 			rotationMatrix = setupRotationMatrix(rotation);
 			inertiaMatrix = rotationMatrix * inertiaBody * glm::transpose(rotationMatrix);
 			
-			int maxForce = 100;
-			initialForce = glm::vec3(rand() % maxForce - maxForce / 2.f, rand() % maxForce - maxForce / 2.f, rand() % maxForce - maxForce / 2.f);
-			//initialForce = glm::vec3(0,0,1);
-			initialForcePoint = rotationMatrix * glm::vec3(0.5f, 0.5f, 0.5f) + position;
+			int maxForce = 10;
+			//initialForce = glm::vec3(rand() % maxForce - maxForce / 2.f, rand() % maxForce - maxForce / 2.f, rand() % maxForce - maxForce / 2.f);
+			initialForce = glm::vec3(100,0,0);
+			initialForcePoint = /*rotationMatrix **/ glm::vec3(0.5f, 4.5f, 0) /*+ position*/;
 			//initialForcePoint = glm::vec3(0.5f, 4.5f, 0);
 
 			forces.clear();
@@ -142,9 +152,9 @@ Cube::CubeStruct *ourCube;
 void printSpecs() {
 	if (Cube::showSpecs) {
 		std::cout << "--------------------------------------------------------------------" << std::endl;
-		std::cout << "Position: " << ourCube->position.x << " " << ourCube->position.y << " " << ourCube->position.z << std::endl;
+		//std::cout << "Position: " << ourCube->position.x << " " << ourCube->position.y << " " << ourCube->position.z << std::endl;
 		std::cout << "Rotation: " << ourCube->rotation.x << " " << ourCube->rotation.y << " " << ourCube->rotation.z << std::endl;
-		std::cout << "Velocity: " << ourCube->velocity.x << " " << ourCube->velocity.y << " " << ourCube->velocity.z << std::endl;
+		//std::cout << "Velocity: " << ourCube->velocity.x << " " << ourCube->velocity.y << " " << ourCube->velocity.z << std::endl;
 		std::cout << "Force: " << ourCube->totalForce.x << " " << ourCube->totalForce.y << " " << ourCube->totalForce.z << std::endl;
 		std::cout << "Torque: " << ourCube->torque.x << " " << ourCube->torque.y << " " << ourCube->torque.z << std::endl;
 		//std::cout << "Num Forces: " << ourCube->forces.size() << std::endl;
@@ -152,13 +162,13 @@ void printSpecs() {
 		std::cout << "Ang Vel: " << ourCube->angularVelocity.x << " " << ourCube->angularVelocity.y << " " << ourCube->angularVelocity.z << std::endl;
 		std::cout << "Ang Mom: " << ourCube->angularMomentum.x << " " << ourCube->angularMomentum.y << " " << ourCube->angularMomentum.z << std::endl;
 		std::cout << "Lin Mom: " << ourCube->linearMomentum.x << " " << ourCube->linearMomentum.y << " " << ourCube->linearMomentum.z << std::endl;
-		/*std::cout << "Inertia BODY: " << std::endl;
+		std::cout << "Inertia BODY: " << std::endl;
 		for (int i = 0; i < 3; i++) {
 			for (int j = 0; j < 3; j++) {
 				std::cout << ourCube->inertiaBody[i][j] << " ";
 			}
 			std::cout << std::endl;
-		}*/
+		}
 		std::cout << "Inertia MATRIX: " << std::endl;
 		for (int i = 0; i < 3; i++) {
 			for (int j = 0; j < 3; j++) {
@@ -223,8 +233,7 @@ void MyPhysicsUpdate(float dt) {
 		rotation = glm::rotate(rotation, ourCube->rotation.z, glm::vec3(0, 0, 1));
 
 		Cube::updateCube(translation * rotation);
-
-		ourCube->rotationMatrix += ourDt * (ourCube->angularVelocity * ourCube->rotationMatrix);
+		ourCube->rotationMatrix += ourDt * (Cube::generateWMatrix(ourCube->angularVelocity) * ourCube->rotationMatrix);
 		//ourCube->rotation += dt * glm::vec3(ourCube->angularVelocity.x, ourCube->angularVelocity.y, ourCube->angularVelocity.z);
 		ourCube->rotation = Cube::setupRotation(ourCube->rotationMatrix);
 		
@@ -249,6 +258,9 @@ void GUI() {
 		//Exemple_GUI();
 	}
 	ImGui::Checkbox("Show Specs: ", &Cube::showSpecs);
+	if(ImGui::Button("Reset")) {
+		ourCube->cubeReset();
+	}
 	
 	ImGui::End();
 }

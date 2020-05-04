@@ -50,11 +50,26 @@ namespace Cube {
 	}
 	glm::vec3 setupRotation(glm::mat3 _rotationMatrix) {
 	
-		float yAngle = -glm::asin(_rotationMatrix[2][0]);
+		/*float yAngle = -glm::asin(_rotationMatrix[2][0]);
 		float xAngle = std::atan2(_rotationMatrix[2][1] / glm::cos(yAngle), _rotationMatrix[2][2] / glm::cos(yAngle));
 		float zAngle = std::atan2(_rotationMatrix[1][0] / glm::cos(yAngle), _rotationMatrix[0][0] / glm::cos(yAngle));
 		std::cout << glm::degrees(xAngle) << " " << glm::degrees(yAngle) << " " << glm::degrees(zAngle) << std::endl;
-		return glm::vec3(xAngle,yAngle,zAngle);
+		return glm::vec3(xAngle,yAngle,zAngle);*/
+		float xAngle, yAngle, zAngle;
+		float sy = glm::sqrt(_rotationMatrix[0][0] * _rotationMatrix[0][0] + _rotationMatrix[1][0] * _rotationMatrix[1][0]);
+		bool singular = sy < glm::pow(10, -6);
+		if (!singular) {
+			xAngle = std::atan2f(_rotationMatrix[2][1], _rotationMatrix[2][2]);
+			yAngle = std::atan2f(-_rotationMatrix[2][0], sy);
+			zAngle = std::atan2f(_rotationMatrix[1][0], _rotationMatrix[0][0]);
+		}
+		else {
+			xAngle = std::atan2f(-_rotationMatrix[1][2], _rotationMatrix[1][1]);
+			yAngle = std::atan2f(-_rotationMatrix[2][0], sy);
+			zAngle = 0;
+		}
+		std::cout << glm::degrees(xAngle) << " " << glm::degrees(yAngle) << " " << glm::degrees(zAngle) << std::endl;
+		return glm::vec3(xAngle, yAngle, zAngle);
 	}
 
 	struct ForceOnPoint {
@@ -105,10 +120,11 @@ namespace Cube {
 			rotationMatrix = setupRotationMatrix(rotation);
 			inertiaMatrix = rotationMatrix * inertiaBody * glm::transpose(rotationMatrix);
 			
-			//initialForce = glm::vec3(rand() % 11 - 5, rand() % 11 - 5, rand() % 11 - 5);
-			initialForce = glm::vec3(0,0,1);
-			//initialForcePoint = rotationMatrix * glm::vec3(0.5f, 0.5f, 0.5f) + position;
-			initialForcePoint = glm::vec3(0.5f, 4.5f, 0);
+			int maxForce = 100;
+			initialForce = glm::vec3(rand() % maxForce - maxForce / 2.f, rand() % maxForce - maxForce / 2.f, rand() % maxForce - maxForce / 2.f);
+			//initialForce = glm::vec3(0,0,1);
+			initialForcePoint = rotationMatrix * glm::vec3(0.5f, 0.5f, 0.5f) + position;
+			//initialForcePoint = glm::vec3(0.5f, 4.5f, 0);
 
 			forces.clear();
 			//forces.push_back(ForceOnPoint(gravity,position)); 

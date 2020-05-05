@@ -49,13 +49,18 @@ namespace Cube {
 		return rotationX * rotationY * rotationZ;
 	}
 	glm::vec3 setupRotation(glm::mat3 _rotationMatrix) {
-	
+		//#1
 		/*float yAngle = -glm::asin(_rotationMatrix[2][0]);
 		float xAngle = std::atan2(_rotationMatrix[2][1] / glm::cos(yAngle), _rotationMatrix[2][2] / glm::cos(yAngle));
-		float zAngle = std::atan2(_rotationMatrix[1][0] / glm::cos(yAngle), _rotationMatrix[0][0] / glm::cos(yAngle));
-		std::cout << glm::degrees(xAngle) << " " << glm::degrees(yAngle) << " " << glm::degrees(zAngle) << std::endl;
-		return glm::vec3(xAngle,yAngle,zAngle);*/
-		float xAngle, yAngle, zAngle;
+		float zAngle = std::atan2(_rotationMatrix[1][0] / glm::cos(yAngle), _rotationMatrix[0][0] / glm::cos(yAngle));*/
+
+		//#2
+		float xAngle = std::atan2(_rotationMatrix[2][1], _rotationMatrix[2][2]);
+		float yAngle = std::atan2(-_rotationMatrix[2][0] , std::sqrtf(std::powf(_rotationMatrix[2][1],2)+ std::powf(_rotationMatrix[2][2], 2)));
+		float zAngle = std::atan2(_rotationMatrix[1][0] , _rotationMatrix[0][0]);
+
+		//#3
+		/*float xAngle, yAngle, zAngle;
 		float sy = glm::sqrt(_rotationMatrix[0][0] * _rotationMatrix[0][0] + _rotationMatrix[1][0] * _rotationMatrix[1][0]);
 		bool singular = sy < glm::pow(10, -6);
 		if (!singular) {
@@ -67,8 +72,8 @@ namespace Cube {
 			xAngle = std::atan2f(-_rotationMatrix[1][2], _rotationMatrix[1][1]);
 			yAngle = std::atan2f(-_rotationMatrix[2][0], sy);
 			zAngle = 0;
-		}
-		std::cout << glm::degrees(xAngle) << " " << glm::degrees(yAngle) << " " << glm::degrees(zAngle) << std::endl;
+		}*/
+		//std::cout << xAngle << " " << yAngle << " " << zAngle << std::endl;
 		return glm::vec3(xAngle, yAngle, zAngle);
 	}
 
@@ -79,6 +84,11 @@ namespace Cube {
 		returnMatrix[2][0] = -w.y; returnMatrix[2][1] = w.x; returnMatrix[2][2] = 0;
 
 		return returnMatrix;
+	}
+	void clearInertiaMatrix(glm::mat3 &I) {
+		I[0][1] = 0; I[0][2] = 0;
+		I[1][0] = 0; I[1][2] = 0;
+		I[2][0] = 0; I[2][1] = 0;
 	}
 
 	struct ForceOnPoint {
@@ -117,7 +127,7 @@ namespace Cube {
 			//position = glm::vec3(rand() % 7 - 3, rand() % 7 + 2, rand() % 7 - 3);
 			position = glm::vec3(0,5,0);
 			//rotation = glm::vec3(glm::radians((float)(rand() % 360)), glm::radians((float)(rand() % 360)), glm::radians((float)(rand() % 360)));
-			rotation = glm::vec3(0, 0, 0);
+			rotation = glm::vec3(glm::radians(-45.f), 0, 0);
 
 			velocity = glm::vec3(0, 0, 0);
 			linearMomentum = glm::vec3(0, 0, 0);
@@ -132,10 +142,10 @@ namespace Cube {
 			
 			int maxForce = 10;
 			//initialForce = glm::vec3(rand() % maxForce - maxForce / 2.f, rand() % maxForce - maxForce / 2.f, rand() % maxForce - maxForce / 2.f);
-			initialForce = glm::vec3(100,0,0);
-			initialForcePoint = /*rotationMatrix **/ glm::vec3(0.5f, 4.5f, 0) /*+ position*/;
+			initialForce = glm::vec3(5,0,0);
+			initialForcePoint = rotationMatrix * glm::vec3(0.5f, 0.5f, 0) + position;
 			//initialForcePoint = glm::vec3(0.5f, 4.5f, 0);
-
+			std::cout << "Initial Force Point: " << initialForcePoint.x << " " << initialForcePoint.y << " " << initialForcePoint.z << std::endl;
 			forces.clear();
 			//forces.push_back(ForceOnPoint(gravity,position)); 
 			forces.push_back(ForceOnPoint(initialForce, initialForcePoint)); 
@@ -225,6 +235,7 @@ void MyPhysicsUpdate(float dt) {
 
 		ourCube->inertiaMatrix = ourCube->rotationMatrix * ourCube->inertiaBody * glm::transpose(ourCube->rotationMatrix);
 		ourCube->angularVelocity = glm::inverse(ourCube->inertiaMatrix) * ourCube->angularMomentum;
+		Cube::clearInertiaMatrix(ourCube->inertiaMatrix);
 
 		glm::mat4 translation = glm::translate(glm::mat4(), ourCube->position);
 		glm::mat4 rotation = glm::mat4();

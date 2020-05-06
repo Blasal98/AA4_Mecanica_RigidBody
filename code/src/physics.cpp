@@ -147,6 +147,35 @@ namespace Cube {
 }
 Cube::CubeStruct *ourCube;
 
+bool detectColision() {
+	 
+	//Els 2 serien el costat del cub/2
+
+	//Vertices del cubo
+	// 1 1 1 es derecha abajo delante
+	// x y z
+	glm::vec3 aux111 = ourCube->position + glm::vec3(2, 2, 2); //derecha abajo delante
+	glm::vec3 aux112 = ourCube->position + glm::vec3(2, 2, 2); //derecha abajo detras 
+	glm::vec3 aux122 = ourCube->position + glm::vec3(2, 2, 2); //derecha arriba detras
+	glm::vec3 aux121 = ourCube->position + glm::vec3(2, 2, 2); //derecha arriba delante
+	glm::vec3 aux211 = ourCube->position + glm::vec3(2, 2, 2); //izquierda abajo delante
+	glm::vec3 aux212 = ourCube->position + glm::vec3(2, 2, 2); //izquierda abajo detras
+	glm::vec3 aux221 = ourCube->position + glm::vec3(2, 2, 2); //izquierda arriba delante
+	glm::vec3 aux222 = ourCube->position + glm::vec3(2, 2, 2); //izquierda arriba detras
+
+	
+
+
+	/*if (((glm::dot(extraData::XZn, MyPS.positionI[i]) + extraData::planeD(extraData::XZn, extraData::aux))*(glm::dot(extraData::XZn, MyPS.positionF[i]) + extraData::planeD(extraData::XZn, extraData::aux))) <= 0) {
+
+		MyPS.positionF[i] = MyPS.positionF[i] - 2 * (glm::dot(extraData::XZn, MyPS.positionF[i]) + extraData::planeD(extraData::XZn, extraData::aux))*extraData::XZn;
+		MyPS.velF[i] = MyPS.velF[i] - 2 * (glm::dot(extraData::XZn, MyPS.velF[i]))*extraData::XZn;
+	}*/
+	
+
+
+}
+
 void printSpecs() {
 	if (Cube::showSpecs) {
 		std::cout << "--------------------------------------------------------------------" << std::endl;

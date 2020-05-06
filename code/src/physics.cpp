@@ -28,7 +28,10 @@ namespace Cube {
 	glm::vec3 scale = glm::vec3(1, 1, 1);
 	int mass = 1;
 	glm::vec3 gravity = glm::vec3(0, -9.81f, 0) * (float)mass;
-	bool showSpecs = true;
+
+	//GUI
+	bool showSpecs = false;
+	bool gravityONOFF = false;
 
 	struct ForceOnPoint {
 		glm::vec3 force;
@@ -62,47 +65,36 @@ namespace Cube {
 		std::vector<ForceOnPoint> forces;
 
 		glm::quat mainQuat;
-		glm::quat auxQuat;
+		//glm::quat auxQuat;
 
+		void addRandomForce() {
+			int maxForce = 30;
+			//initialForce = glm::vec3((rand() % maxForce) - maxForce / 2.f, (rand() % maxForce) - maxForce / 2.f, (rand() % maxForce) - maxForce / 2.f);
+			initialForce = glm::vec3(0,0,5);
+			
+			initialForcePoint = glm::toMat3(mainQuat) * glm::vec3((float) rand()/RAND_MAX, (float)rand() / RAND_MAX, (float)rand() / RAND_MAX) + position;
+			std::cout << (float)(rand() / RAND_MAX)<< std::endl;
+			//initialForcePoint = glm::toMat3(mainQuat) * glm::vec3(0.5f, 0.5f, 0.5f) + position;
+			forces.push_back(ForceOnPoint(initialForce, initialForcePoint));
+
+			//std::cout << "Initial Force Point: " << initialForcePoint.x << " " << initialForcePoint.y << " " << initialForcePoint.z << std::endl;
+		}
 		void cubeReset() {
 			
 			//position = glm::vec3(rand() % 7 - 3, rand() % 7 + 2, rand() % 7 - 3);
 			position = glm::vec3(0,5,0);
-			//initialAxis = glm::normalize(glm::vec3(rand(),rand(),rand()));
-			//initialAxis = glm::vec3(0,1,0);
-			//mainQuat = glm::quat(glm::cos(glm::radians(45.f)), initialAxis);
-			//mainQuat = glm::normalize(mainQuat);
-			//auxQuat = mainQuat;
-			//mainQuat = glm::quat(1,0.2f,0.5f,0.6f);
-			//mainQuat = glm::quat(glm::cos(glm::radians(45.f)*0.5f),0,0, 1 * glm::sin(glm::radians(45.f)*0.5f));
-			//std::cout << "MainQuat: " << mainQuat[0] << " " << mainQuat[1] << " " << mainQuat[2] << " " << mainQuat[3] << std::endl;
-			//mainQuat = glm::normalize(mainQuat);
-			//std::cout << "MainQuat: " << mainQuat[0] << " " << mainQuat[1] << " " << mainQuat[2] << " " << mainQuat[3] << std::endl;
-			////auxQuat = mainQuat;
-			
+
 			//auxQuat = glm::quat(glm::cos(glm::radians(45.f)*0.5f), 0, 0, 1 * glm::sin(glm::radians(45.f)*0.5f));
-			mainQuat = glm::normalize(auxQuat);
+			mainQuat = glm::quat(glm::cos(glm::radians(45.f)*0.5f), 0, 0, 1 * glm::sin(glm::radians(45.f)*0.5f)); //glm::normalize(auxQuat);
 
 			velocity = glm::vec3(0, 0, 0);
 			linearMomentum = glm::vec3(0, 0, 0);
 			angularMomentum = glm::vec3(0, 0, 0);
 			torque = glm::vec3(0, 0, 0);
 			totalForce = glm::vec3(0, 0, 0);
-
 			inertiaBody = glm::mat3(1.f / 12.f * 2.f);
-			//inertiaBody = inertiaBody * (1.f / 12.f * 2.f);
-			//rotationMatrix = setupRotationMatrix(rotation);
-			//inertiaMatrix = glm::toMat3(mainQuat) * glm::inverse(inertiaBody) * glm::transpose(glm::toMat3(mainQuat));
-			
-			int maxForce = 30;
-			//initialForce = glm::vec3(rand() % maxForce - maxForce / 2.f, rand() % maxForce - maxForce / 2.f, rand() % maxForce - maxForce / 2.f);
-			initialForce = glm::vec3(0,0,50);
-			initialForcePoint = glm::toMat3(mainQuat) * glm::vec3(0.5f, 0.5f, 0.5f) + position;
-			//initialForcePoint = glm::vec3(0.5f, 4.5f, 0);
-			std::cout << "Initial Force Point: " << initialForcePoint.x << " " << initialForcePoint.y << " " << initialForcePoint.z << std::endl;
 			forces.clear();
-			//forces.push_back(ForceOnPoint(gravity,position)); 
-			forces.push_back(ForceOnPoint(initialForce, initialForcePoint)); 
+			//addRandomForce();
 		}
 
 		CubeStruct() {
@@ -148,7 +140,7 @@ void printSpecs() {
 			std::cout << std::endl;
 		}
 		std::cout << "MainQuat: " << ourCube->mainQuat[0] << " " << ourCube->mainQuat[1] << " " << ourCube->mainQuat[2] << " " << ourCube->mainQuat[3] << std::endl;
-		std::cout << "AuxQuat: " << ourCube->auxQuat[0] << " " << ourCube->auxQuat[1] << " " << ourCube->auxQuat[2] << " " << ourCube->auxQuat[3] << std::endl;
+		//std::cout << "AuxQuat: " << ourCube->auxQuat[0] << " " << ourCube->auxQuat[1] << " " << ourCube->auxQuat[2] << " " << ourCube->auxQuat[3] << std::endl;
 		std::cout << "--------------------------------------------------------------------" << std::endl;
 	}
 }
@@ -174,12 +166,14 @@ void MyPhysicsUpdate(float dt) {
 
 		ourCube->totalForce = glm::vec3(0,0,0);
 		ourCube->torque = glm::vec3(0,0,0);
+		if (Cube::gravityONOFF)
+			ourCube->forces.push_back(Cube::ForceOnPoint(Cube::gravity, ourCube->position));
 		for (int i = 0; i < ourCube->forces.size(); i++) {
 			ourCube->totalForce += ourCube->forces.at(i).force;
 			ourCube->torque += glm::cross(ourCube->forces.at(i).point - ourCube->position, ourCube->forces[i].force);
 		}
-		
-		
+		ourCube->forces.clear();
+
 		ourCube->linearMomentum += ourDt * ourCube->totalForce;
 		ourCube->angularMomentum += ourDt * ourCube->torque;
 		ourCube->velocity = ourCube->linearMomentum / (float)Cube::mass;
@@ -188,16 +182,14 @@ void MyPhysicsUpdate(float dt) {
 		ourCube->inertiaMatrix = glm::toMat3(ourCube->mainQuat) * glm::inverse(ourCube->inertiaBody) * glm::transpose(glm::toMat3(ourCube->mainQuat));
 		ourCube->angularVelocity = ourCube->inertiaMatrix * ourCube->angularMomentum;
 		
-		//ourCube->rotationMatrix += ourDt * (Cube::generateWMatrix(ourCube->angularVelocity) * ourCube->rotationMatrix);
-		glm::quat auxAngVel = glm::quat(0, ourCube->angularVelocity.x, ourCube->angularVelocity.y, ourCube->angularVelocity.z);
+		//Rotacio
+		glm::quat auxAngVel = glm::quat(0, ourCube->angularVelocity);
 		glm::quat dQuat = (1.f / 2.f) * auxAngVel * ourCube->mainQuat;
-		std::cout << "dQuat: " << dQuat[0] << " " << dQuat[1] << " " << dQuat[2] << " " << dQuat[3] << std::endl;
+		ourCube->mainQuat = glm::normalize(ourCube->mainQuat + ourDt * dQuat);
+		std::cout << glm::length(ourCube->mainQuat) << std::endl;
+		//std::cout << "dQuat: " << dQuat[0] << " " << dQuat[1] << " " << dQuat[2] << " " << dQuat[3] << std::endl;
 
-		ourCube->auxQuat = ourCube->auxQuat + ourDt * dQuat;
-		ourCube->mainQuat = glm::normalize(ourCube->auxQuat);
-		
-		ourCube->forces.clear();
-		//ourCube->forces.push_back(Cube::ForceOnPoint(Cube::gravity, ourCube->position));
+		//Dibujo del Cubo Y Datos
 		glm::mat4 translation = glm::translate(glm::mat4(), ourCube->position);
 		Cube::updateCube(translation * glm::toMat4(ourCube->mainQuat));
 		printSpecs();
@@ -217,9 +209,13 @@ void GUI() {
 		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);//FrameRate
 		//Exemple_GUI();
 	}
-	ImGui::Checkbox("Show Specs: ", &Cube::showSpecs);
+	ImGui::Checkbox("Show Specs", &Cube::showSpecs);
+	ImGui::Checkbox("Gravity On/Off", &Cube::gravityONOFF);
 	if(ImGui::Button("Reset")) {
 		ourCube->cubeReset();
+	}
+	if (ImGui::Button("Add Random Force")) {
+		ourCube->addRandomForce();
 	}
 	
 	ImGui::End();

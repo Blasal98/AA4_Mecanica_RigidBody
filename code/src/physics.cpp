@@ -73,10 +73,15 @@ namespace Cube {
 			//mainQuat = glm::quat(glm::cos(glm::radians(45.f)), initialAxis);
 			//mainQuat = glm::normalize(mainQuat);
 			//auxQuat = mainQuat;
-			mainQuat = glm::quat(1,0,0,0);
-			auxQuat = glm::quat(glm::cos(glm::radians(45.f)*0.5f),0,0, 1 * glm::sin(glm::radians(45.f)*0.5f));
-			mainQuat = glm::normalize(auxQuat);
+			//mainQuat = glm::quat(1,0.2f,0.5f,0.6f);
+			//mainQuat = glm::quat(glm::cos(glm::radians(45.f)*0.5f),0,0, 1 * glm::sin(glm::radians(45.f)*0.5f));
+			//std::cout << "MainQuat: " << mainQuat[0] << " " << mainQuat[1] << " " << mainQuat[2] << " " << mainQuat[3] << std::endl;
+			//mainQuat = glm::normalize(mainQuat);
+			//std::cout << "MainQuat: " << mainQuat[0] << " " << mainQuat[1] << " " << mainQuat[2] << " " << mainQuat[3] << std::endl;
+			////auxQuat = mainQuat;
 			
+			auxQuat = glm::quat(glm::cos(glm::radians(45.f)*0.5f), 0, 0, 1 * glm::sin(glm::radians(45.f)*0.5f));
+			mainQuat = glm::normalize(auxQuat);
 
 			velocity = glm::vec3(0, 0, 0);
 			linearMomentum = glm::vec3(0, 0, 0);
@@ -84,14 +89,14 @@ namespace Cube {
 			torque = glm::vec3(0, 0, 0);
 			totalForce = glm::vec3(0, 0, 0);
 
-			inertiaBody = glm::mat3();
-			inertiaBody = inertiaBody * (1.f / 12.f * 2.f);
+			inertiaBody = glm::mat3(1.f / 12.f * 2.f);
+			//inertiaBody = inertiaBody * (1.f / 12.f * 2.f);
 			//rotationMatrix = setupRotationMatrix(rotation);
-			inertiaMatrix = glm::toMat3(mainQuat) * inertiaBody * glm::transpose(glm::toMat3(mainQuat));
+			//inertiaMatrix = glm::toMat3(mainQuat) * glm::inverse(inertiaBody) * glm::transpose(glm::toMat3(mainQuat));
 			
 			int maxForce = 30;
 			//initialForce = glm::vec3(rand() % maxForce - maxForce / 2.f, rand() % maxForce - maxForce / 2.f, rand() % maxForce - maxForce / 2.f);
-			initialForce = glm::vec3(0,0,0);
+			initialForce = glm::vec3(0,-25,0);
 			initialForcePoint = glm::toMat3(mainQuat) * glm::vec3(0.5f, 0, 0) + position;
 			//initialForcePoint = glm::vec3(0.5f, 4.5f, 0);
 			std::cout << "Initial Force Point: " << initialForcePoint.x << " " << initialForcePoint.y << " " << initialForcePoint.z << std::endl;
@@ -158,7 +163,7 @@ void MyPhysicsInit() {
 	glm::mat4 translation = glm::translate(glm::mat4(), ourCube->position);
 	glm::mat4 scale = glm::scale(glm::mat4(), Cube::scale);
 	
-	Cube::updateCube(translation * glm::toMat4(ourCube->mainQuat) * scale);
+	//Cube::updateCube(translation * glm::toMat4(ourCube->mainQuat)/* * scale*/);
 	
 	printSpecs();
 }
@@ -180,22 +185,20 @@ void MyPhysicsUpdate(float dt) {
 		ourCube->velocity = ourCube->linearMomentum / (float)Cube::mass;
 		ourCube->position += ourDt * ourCube->velocity;
 
-		ourCube->inertiaMatrix = glm::toMat3(ourCube->mainQuat) * ourCube->inertiaBody * glm::transpose(glm::toMat3(ourCube->mainQuat));
-		ourCube->angularVelocity = glm::inverse(ourCube->inertiaMatrix) * ourCube->angularMomentum;
+		ourCube->inertiaMatrix = glm::toMat3(ourCube->mainQuat) * glm::inverse(ourCube->inertiaBody) * glm::transpose(glm::toMat3(ourCube->mainQuat));
+		ourCube->angularVelocity = ourCube->inertiaMatrix * ourCube->angularMomentum;
 		
-
-		glm::mat4 translation = glm::translate(glm::mat4(), ourCube->position);
-		Cube::updateCube(translation * glm::toMat4(ourCube->mainQuat));
-
 		//ourCube->rotationMatrix += ourDt * (Cube::generateWMatrix(ourCube->angularVelocity) * ourCube->rotationMatrix);
-		glm::quat dQuat = (1.f / 2.f) * ourCube->angularVelocity * ourCube->mainQuat;
+		glm::quat dQuat = (1.f / 2.f) * ourCube->angularVelocity * ourCube->auxQuat;
 		std::cout << "dQuat: " << dQuat[0] << " " << dQuat[1] << " " << dQuat[2] << " " << dQuat[3] << std::endl;
+
 		ourCube->auxQuat = ourCube->auxQuat + ourDt * dQuat;
 		ourCube->mainQuat = glm::normalize(ourCube->auxQuat);
 		
 		ourCube->forces.clear();
 		//ourCube->forces.push_back(Cube::ForceOnPoint(Cube::gravity, ourCube->position));
-
+		glm::mat4 translation = glm::translate(glm::mat4(), ourCube->position);
+		Cube::updateCube(translation * glm::toMat4(ourCube->mainQuat));
 		printSpecs();
 	}
 }

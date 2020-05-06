@@ -80,7 +80,7 @@ namespace Cube {
 			//std::cout << "MainQuat: " << mainQuat[0] << " " << mainQuat[1] << " " << mainQuat[2] << " " << mainQuat[3] << std::endl;
 			////auxQuat = mainQuat;
 			
-			auxQuat = glm::quat(glm::cos(glm::radians(45.f)*0.5f), 0, 0, 1 * glm::sin(glm::radians(45.f)*0.5f));
+			//auxQuat = glm::quat(glm::cos(glm::radians(45.f)*0.5f), 0, 0, 1 * glm::sin(glm::radians(45.f)*0.5f));
 			mainQuat = glm::normalize(auxQuat);
 
 			velocity = glm::vec3(0, 0, 0);
@@ -96,8 +96,8 @@ namespace Cube {
 			
 			int maxForce = 30;
 			//initialForce = glm::vec3(rand() % maxForce - maxForce / 2.f, rand() % maxForce - maxForce / 2.f, rand() % maxForce - maxForce / 2.f);
-			initialForce = glm::vec3(0,-25,0);
-			initialForcePoint = glm::toMat3(mainQuat) * glm::vec3(0.5f, 0, 0) + position;
+			initialForce = glm::vec3(0,0,50);
+			initialForcePoint = glm::toMat3(mainQuat) * glm::vec3(0.5f, 0.5f, 0.5f) + position;
 			//initialForcePoint = glm::vec3(0.5f, 4.5f, 0);
 			std::cout << "Initial Force Point: " << initialForcePoint.x << " " << initialForcePoint.y << " " << initialForcePoint.z << std::endl;
 			forces.clear();
@@ -189,7 +189,8 @@ void MyPhysicsUpdate(float dt) {
 		ourCube->angularVelocity = ourCube->inertiaMatrix * ourCube->angularMomentum;
 		
 		//ourCube->rotationMatrix += ourDt * (Cube::generateWMatrix(ourCube->angularVelocity) * ourCube->rotationMatrix);
-		glm::quat dQuat = (1.f / 2.f) * ourCube->angularVelocity * ourCube->auxQuat;
+		glm::quat auxAngVel = glm::quat(0, ourCube->angularVelocity.x, ourCube->angularVelocity.y, ourCube->angularVelocity.z);
+		glm::quat dQuat = (1.f / 2.f) * auxAngVel * ourCube->mainQuat;
 		std::cout << "dQuat: " << dQuat[0] << " " << dQuat[1] << " " << dQuat[2] << " " << dQuat[3] << std::endl;
 
 		ourCube->auxQuat = ourCube->auxQuat + ourDt * dQuat;

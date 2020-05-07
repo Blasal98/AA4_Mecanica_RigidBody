@@ -32,6 +32,7 @@ namespace Cube {
 	//GUI
 	bool showSpecs = false;
 	bool gravityONOFF = false;
+	bool moveCubeONOFF = true;
 
 	struct ForceOnPoint {
 		glm::vec3 force;
@@ -61,6 +62,7 @@ namespace Cube {
 
 		glm::vec3 initialForce;
 		glm::vec3 initialForcePoint;
+		int maxInitialForce = 10;
 
 		std::vector<ForceOnPoint> forces;
 
@@ -68,12 +70,10 @@ namespace Cube {
 		//glm::quat auxQuat;
 
 		void addRandomForce() {
-			int maxForce = 30;
-			//initialForce = glm::vec3((rand() % maxForce) - maxForce / 2.f, (rand() % maxForce) - maxForce / 2.f, (rand() % maxForce) - maxForce / 2.f);
-			initialForce = glm::vec3(0,0,5);
+			initialForce = glm::vec3((rand() % maxInitialForce) - maxInitialForce / 2.f, (rand() % maxInitialForce) - maxInitialForce / 2.f, (rand() % maxInitialForce) - maxInitialForce / 2.f);
+			//initialForce = glm::vec3(0,0,5);
 			
 			initialForcePoint = glm::toMat3(mainQuat) * glm::vec3((float) rand()/RAND_MAX, (float)rand() / RAND_MAX, (float)rand() / RAND_MAX) + position;
-			std::cout << (float)(rand() / RAND_MAX)<< std::endl;
 			//initialForcePoint = glm::toMat3(mainQuat) * glm::vec3(0.5f, 0.5f, 0.5f) + position;
 			forces.push_back(ForceOnPoint(initialForce, initialForcePoint));
 
@@ -94,6 +94,7 @@ namespace Cube {
 			totalForce = glm::vec3(0, 0, 0);
 			inertiaBody = glm::mat3(1.f / 12.f * 2.f);
 			forces.clear();
+			initialForce = glm::vec3(0, 0, 0);
 			//addRandomForce();
 		}
 
@@ -177,7 +178,8 @@ void MyPhysicsUpdate(float dt) {
 		ourCube->linearMomentum += ourDt * ourCube->totalForce;
 		ourCube->angularMomentum += ourDt * ourCube->torque;
 		ourCube->velocity = ourCube->linearMomentum / (float)Cube::mass;
-		ourCube->position += ourDt * ourCube->velocity;
+		if(Cube::moveCubeONOFF)
+			ourCube->position += ourDt * ourCube->velocity;
 
 		ourCube->inertiaMatrix = glm::toMat3(ourCube->mainQuat) * glm::inverse(ourCube->inertiaBody) * glm::transpose(glm::toMat3(ourCube->mainQuat));
 		ourCube->angularVelocity = ourCube->inertiaMatrix * ourCube->angularMomentum;
@@ -186,7 +188,7 @@ void MyPhysicsUpdate(float dt) {
 		glm::quat auxAngVel = glm::quat(0, ourCube->angularVelocity);
 		glm::quat dQuat = (1.f / 2.f) * auxAngVel * ourCube->mainQuat;
 		ourCube->mainQuat = glm::normalize(ourCube->mainQuat + ourDt * dQuat);
-		std::cout << glm::length(ourCube->mainQuat) << std::endl;
+		//std::cout << glm::length(ourCube->mainQuat) << std::endl;
 		//std::cout << "dQuat: " << dQuat[0] << " " << dQuat[1] << " " << dQuat[2] << " " << dQuat[3] << std::endl;
 
 		//Dibujo del Cubo Y Datos
@@ -211,13 +213,14 @@ void GUI() {
 	}
 	ImGui::Checkbox("Show Specs", &Cube::showSpecs);
 	ImGui::Checkbox("Gravity On/Off", &Cube::gravityONOFF);
+	ImGui::Checkbox("Cube moves On/Off", &Cube::moveCubeONOFF);
 	if(ImGui::Button("Reset")) {
 		ourCube->cubeReset();
 	}
 	if (ImGui::Button("Add Random Force")) {
 		ourCube->addRandomForce();
 	}
-	
+	ImGui::SliderInt("Force Intensity", &ourCube->maxInitialForce, 0, 200);
 	ImGui::End();
 }
 

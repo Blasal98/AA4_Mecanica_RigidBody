@@ -7,6 +7,7 @@
 #include <math.h>
 #include <glm\gtc\quaternion.hpp>
 #include <glm\gtx\quaternion.hpp>
+#include <Windows.h>
 
 //Exemple
 extern void Exemple_GUI();
@@ -15,8 +16,53 @@ extern void Exemple_PhysicsUpdate(float dt);
 extern void Exemple_PhysicsCleanup();
 
 bool show_test_window = false;
+extern const float halfW = 0.5f;
+namespace myData {
+	float indiceRebote = 2;
 
+	//planos
+	glm::vec3 XYn = glm::vec3(0, 0, 1);//normal de plano XY es Z
+	glm::vec3 YZn = glm::vec3(1, 0, 0);
+	glm::vec3 XZn = glm::vec3(0, 1, 0);
+	glm::vec3 negYZn = glm::vec3(-1, 0, 0);
+	glm::vec3 negXYn = glm::vec3(0, 0, -1);
+	glm::vec3 negXZn = glm::vec3(0, -1, 0);
 
+	glm::vec3 aux = glm::vec3(-5, 0, -5);
+	glm::vec3 aux2 = glm::vec3(-5, 0, 5);
+	glm::vec3 aux3 = glm::vec3(5, 0, -5);
+	glm::vec3 aux4 = glm::vec3(-5, 10, -5);
+	glm::vec3 vX1 = aux - aux2;
+	glm::vec3 vX2 = aux - aux3;
+
+	glm::vec3 cubeVerts[] = {
+		glm::vec3(-halfW, -halfW, -halfW),
+		glm::vec3(-halfW, -halfW,  halfW),
+		glm::vec3(halfW, -halfW,  halfW),
+		glm::vec3(halfW, -halfW, -halfW),
+		glm::vec3(-halfW,  halfW, -halfW),
+		glm::vec3(-halfW,  halfW,  halfW),
+		glm::vec3(halfW,  halfW,  halfW),
+		glm::vec3(halfW,  halfW, -halfW)
+	};
+
+	bool colisions = true;
+
+	float planeD(glm::vec3 normal, glm::vec3 point) {
+		return -(normal.x*point.x + normal.y*point.y + normal.z*point.z);
+	}
+
+	/*bool checkPointOnPlane(glm::vec3 normal, glm::vec3 pointPlane, glm::vec3 pointCheck) {
+		return ((normal.x*pointCheck.x) + (normal.y*pointCheck.y) + (normal.z*pointCheck.z) + planeD(normal, pointPlane)) == 0;
+	}*/
+	/*bool checkPointOnPlane(glm::vec3 normal, glm::vec3 pointPlane, glm::vec3 pointCheck) {
+		return ((normal.x*pointCheck.x) + (normal.y*pointCheck.y) + (normal.z*pointCheck.z) + planeD(normal, pointCheck)) == 0;
+	}*/
+	bool checkPointOnPlane(glm::vec3 normal, glm::vec3 pointPlane, glm::vec3 pointCheck) {
+		return (pointCheck.x + 5) == 0;
+	}
+
+}
 extern bool renderCube;
 namespace Cube {
 
@@ -106,6 +152,78 @@ namespace Cube {
 }
 Cube::CubeStruct *ourCube;
 
+
+bool detectColision() {
+
+	//Els 2 serien el costat del cub/2
+
+	//Vertices del cubo
+	// 1 1 1 es derecha abajo delante
+	// x y z
+	/*glm::vec3 aux111 = ourCube->position + glm::vec3(2, -2, -2); //derecha abajo delante
+	glm::vec3 aux112 = ourCube->position + glm::vec3(2, -2, 2); //derecha abajo detras 
+	glm::vec3 aux122 = ourCube->position + glm::vec3(2, 2, 2); //derecha arriba detras
+	glm::vec3 aux121 = ourCube->position + glm::vec3(2, 2, -2); //derecha arriba delante
+	glm::vec3 aux211 = ourCube->position + glm::vec3(-2, -2, -2); //izquierda abajo delante
+	glm::vec3 aux212 = ourCube->position + glm::vec3(-2, -2, 2); //izquierda abajo detras
+	glm::vec3 aux221 = ourCube->position + glm::vec3(-2, 2, -2); //izquierda arriba delante
+	glm::vec3 aux222 = ourCube->position + glm::vec3(-2, 2, 2); //izquierda arriba detras
+	*/
+
+
+
+	/*if (((glm::dot(myData::XZn, aux111) + myData::planeD(myData::XZn, myData::aux))*(glm::dot(myData::XZn, aux111) + myData::planeD(myData::XZn, myData::aux))) <= 0) {
+		Sleep(500);
+
+	}*/
+	if (myData::checkPointOnPlane(myData::XZn, myData::aux, myData::cubeVerts[0])) {
+		Sleep(500);
+	}
+	/*
+	if () {
+
+	}
+	if () {
+
+	}
+	if () {
+
+	}
+	if () {
+
+	}
+	if () {
+
+	}
+	if () {
+
+	}
+	if () {
+
+	}
+	else {
+
+	}
+	*/
+
+
+	/*if (((glm::dot(extraData::XZn, MyPS.positionI[i]) + extraData::planeD(extraData::XZn, extraData::aux))*(glm::dot(extraData::XZn, MyPS.positionF[i]) + extraData::planeD(extraData::XZn, extraData::aux))) <= 0) {
+
+		MyPS.positionF[i] = MyPS.positionF[i] - 2 * (glm::dot(extraData::XZn, MyPS.positionF[i]) + extraData::planeD(extraData::XZn, extraData::aux))*extraData::XZn;
+		MyPS.velF[i] = MyPS.velF[i] - 2 * (glm::dot(extraData::XZn, MyPS.velF[i]))*extraData::XZn;
+	}*/
+	/*
+	if (((glm::dot(myData::XZn, myPM.points[i][j].actualPosition) + myData::planeD(myData::XZn, myData::aux))*(glm::dot(myData::XZn, myPM.points[i][j].newPosition) + myData::planeD(myData::XZn, myData::aux))) <= 0) {
+
+						myPM.points[i][j].newPosition = myPM.points[i][j].newPosition - (1 + myPM.E) * (glm::dot(myData::XZn, myPM.points[i][j].newPosition) + myData::planeD(myData::XZn, myData::aux))*myData::XZn;
+
+					}
+	*/
+
+	return true;
+
+}
+
 void printSpecs() {
 	if (Cube::showSpecs) {
 		std::cout << "--------------------------------------------------------------------" << std::endl;
@@ -190,7 +308,7 @@ void MyPhysicsUpdate(float dt) {
 		ourCube->mainQuat = glm::normalize(ourCube->mainQuat + ourDt * dQuat);
 		//std::cout << glm::length(ourCube->mainQuat) << std::endl;
 		//std::cout << "dQuat: " << dQuat[0] << " " << dQuat[1] << " " << dQuat[2] << " " << dQuat[3] << std::endl;
-
+		detectColision();
 		//Dibujo del Cubo Y Datos
 		glm::mat4 translation = glm::translate(glm::mat4(), ourCube->position);
 		Cube::updateCube(translation * glm::toMat4(ourCube->mainQuat));

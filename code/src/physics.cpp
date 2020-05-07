@@ -31,7 +31,7 @@ namespace Cube {
 	glm::vec3 gravity = glm::vec3(0, -9.81f, 0) * (float)mass;
 
 	//GUI
-	bool showSpecs = false;
+	bool showSpecs = true;
 	bool gravityONOFF = false;
 	bool moveCubeONOFF = true;
 
@@ -47,6 +47,7 @@ namespace Cube {
 
 	struct CubeStruct {
 		glm::vec3 position;
+		glm::vec3 lastPosition;
 		glm::vec3 initialAxis;
 		glm::vec3 velocity;
 
@@ -128,12 +129,12 @@ namespace myData {
 	glm::vec3 cubeVerts[] = {
 		glm::vec3(-halfW, -halfW, -halfW),
 		glm::vec3(-halfW, -halfW,  halfW),
-		glm::vec3(halfW, -halfW,  halfW),
-		glm::vec3(halfW, -halfW, -halfW),
+		glm::vec3(halfW, -halfW,  halfW) ,
+		glm::vec3(halfW, -halfW, -halfW) ,
 		glm::vec3(-halfW,  halfW, -halfW),
 		glm::vec3(-halfW,  halfW,  halfW),
-		glm::vec3(halfW,  halfW,  halfW),
-		glm::vec3(halfW,  halfW, -halfW)
+		glm::vec3(halfW,  halfW,  halfW) ,
+		glm::vec3(halfW,  halfW, -halfW) 
 	};
 
 
@@ -173,9 +174,13 @@ namespace myData {
 		//eq del plano suelo: x + 5 = 0
 		return (pointCheck.x + 5) + planeD(normal,pointPlane) == 0;
 	}
-	float checkPointOnPlaneGroundF(glm::vec3 normal, glm::vec3 pointPlane, glm::vec3 pointCheck) {
+	float checkPointOnPlaneGroundFD(glm::vec3 normal, glm::vec3 pointPlane, glm::vec3 pointCheck) {
 		//eq del plano suelo: x + 5 = 0
 		return (pointCheck.x + 5) + planeD(normal, pointPlane);
+	}
+	float checkPointOnPlaneGroundF(glm::vec3 normal, glm::vec3 pointPlane, glm::vec3 pointCheck) {
+		//eq del plano suelo: x + 5 = 0
+		return (pointCheck.x + 5);
 	}
 	int checkPointOnPlaneGroundI(glm::vec3 normal, glm::vec3 pointPlane, glm::vec3 pointCheck) {
 		//eq del plano suelo: x + 5 = 0
@@ -186,23 +191,33 @@ namespace myData {
 bool detectColision() {
 
 	
-	
-	for (int i = 0; i < 8; i++) {
-		myData::cubeVerts[i] = glm::toMat3(ourCube->mainQuat) * myData::cubeVerts[i] + ourCube->position;
-	}
-
-	for (int i = 0; i < 8; i++) {
-		int colisionIndex = myData::checkPointOnPlaneGroundF(myData::XZn, myData::aux, myData::cubeVerts[i]);
-		if (colisionIndex < 0.085 && colisionIndex > -0.085) {
-			std::cout << "colision" << std::endl;
-			system("pause");
+	if (ourCube->position != ourCube->lastPosition) {
+		for (int i = 0; i < 8; i++) {
+			myData::cubeVerts[i] = glm::toMat3(ourCube->mainQuat) * myData::cubeVerts[i] + ourCube->position;
 		}
 
-		/*if (myData::cubeVerts[i].y <= -5.1) {
-			
-			std::cout << "colision" << std::endl;
-			system("pause");
-		}*/
+
+
+		for (int i = 0; i < 8; i++) {
+			/*if (ourCube->position.y <= 0) {
+				std::cout << "colision" << std::endl;
+				system("pause");
+			}*/
+
+
+			/*
+			float colisionIndex = myData::checkPointOnPlaneGroundFD(myData::XZn, myData::aux, myData::cubeVerts[i]);
+			if (colisionIndex < 0.085 && colisionIndex > -0.085) {
+				std::cout << "colision" << std::endl;
+				system("pause");
+			}*/
+
+			if (myData::cubeVerts[i].y <= 0) {
+
+				std::cout << "colision" << std::endl;
+				system("pause");
+			}
+		}
 	}
 
 	/*
@@ -286,7 +301,9 @@ void printSpecs() {
 		}
 		std::cout << "MainQuat: " << ourCube->mainQuat[0] << " " << ourCube->mainQuat[1] << " " << ourCube->mainQuat[2] << " " << ourCube->mainQuat[3] << std::endl;
 		//std::cout << "AuxQuat: " << ourCube->auxQuat[0] << " " << ourCube->auxQuat[1] << " " << ourCube->auxQuat[2] << " " << ourCube->auxQuat[3] << std::endl;
-		std::cout << "POSITIONS: " << std::endl;
+		std::cout << "MassCenter POSITION: ";
+		std::cout << "(" << ourCube->position.x << "/" << ourCube->position.y << "/" << ourCube->position.z << ")" << std::endl;
+		std::cout << "VERTEX POSITIONS: " << std::endl;
 		for (int i = 0; i < 8; i++) {
 			std::cout << "(" << myData::cubeVerts[i].x << "/" << myData::cubeVerts[i].y << "/" << myData::cubeVerts[i].z << ")" << std::endl;
 		}
@@ -305,7 +322,11 @@ void MyPhysicsInit() {
 	glm::mat4 scale = glm::scale(glm::mat4(), Cube::scale);
 	
 	//Cube::updateCube(translation * glm::toMat4(ourCube->mainQuat)/* * scale*/);
-	
+	ourCube->lastPosition = ourCube->position;
+	for (int i = 0; i < 8; i++) {
+		myData::cubeVerts[i] += ourCube->position;
+	}
+
 	printSpecs();
 }
 
@@ -326,9 +347,10 @@ void MyPhysicsUpdate(float dt) {
 		ourCube->linearMomentum += ourDt * ourCube->totalForce;
 		ourCube->angularMomentum += ourDt * ourCube->torque;
 		ourCube->velocity = ourCube->linearMomentum / (float)Cube::mass;
-		if(Cube::moveCubeONOFF)
+		if (Cube::moveCubeONOFF) {
+			ourCube->lastPosition = ourCube->position;
 			ourCube->position += ourDt * ourCube->velocity;
-
+		}
 		ourCube->inertiaMatrix = glm::toMat3(ourCube->mainQuat) * glm::inverse(ourCube->inertiaBody) * glm::transpose(glm::toMat3(ourCube->mainQuat));
 		ourCube->angularVelocity = ourCube->inertiaMatrix * ourCube->angularMomentum;
 		

@@ -33,6 +33,9 @@ namespace Cube {
 	bool showSpecs = false;
 	bool gravityONOFF = false;
 	bool moveCubeONOFF = true;
+	bool randomSTART = true;
+	glm::vec3 notRandom_EulerAngles;
+	glm::vec3 notRandom_Position = glm::vec3(0,5,0);
 
 	struct ForceOnPoint {
 		glm::vec3 force;
@@ -81,11 +84,31 @@ namespace Cube {
 		}
 		void cubeReset() {
 			
-			//position = glm::vec3(rand() % 7 - 3, rand() % 7 + 2, rand() % 7 - 3);
-			position = glm::vec3(0,5,0);
-
-			//auxQuat = glm::quat(glm::cos(glm::radians(45.f)*0.5f), 0, 0, 1 * glm::sin(glm::radians(45.f)*0.5f));
-			mainQuat = glm::quat(glm::cos(glm::radians(45.f)*0.5f), 0, 0, 1 * glm::sin(glm::radians(45.f)*0.5f)); //glm::normalize(auxQuat);
+			if (Cube::randomSTART) {
+				position = glm::vec3(rand() % 7 - 3, rand() % 7 + 2, rand() % 7 - 3);
+				glm::vec3 auxVec3 = glm::normalize(glm::vec3((float)rand() / RAND_MAX, (float)rand() / RAND_MAX, (float)rand() / RAND_MAX));
+				float auxAngle = glm::radians((float)(rand() % 360));
+				mainQuat = glm::quat(glm::cos(auxAngle*0.5f)
+					, auxVec3.x * glm::sin(auxAngle*0.5f)
+					, auxVec3.y * glm::sin(auxAngle*0.5f)
+					, auxVec3.z * glm::sin(auxAngle*0.5f));
+			}
+			else {
+				position = notRandom_Position;
+				//mainQuat = glm::toQuat(auxMatrix);
+				glm::vec3 EulerInR = glm::vec3(glm::radians(notRandom_EulerAngles.x), glm::radians(notRandom_EulerAngles.y), glm::radians(notRandom_EulerAngles.z));
+				float c1,c2,c3,s1,s2,s3;
+				c1 = glm::cos(EulerInR.y / 2.f);
+				c2 = glm::cos(EulerInR.z / 2.f);
+				c3 = glm::cos(EulerInR.x / 2.f);
+				s1 = glm::sin(EulerInR.y / 2.f);
+				s2 = glm::sin(EulerInR.z / 2.f);
+				s3 = glm::sin(EulerInR.x / 2.f);
+				mainQuat[3] = c1 * c2 * c3 - s1 * s2 * s3;
+				mainQuat[0] = s1 * s2 * c3 + c1 * c2 * s3;
+				mainQuat[1] = s1 * c2 * c3 + c1 * s2 * s3;
+				mainQuat[2] = c1 * s2 * c3 - s1 * c2 * s3;
+			}
 
 			velocity = glm::vec3(0, 0, 0);
 			linearMomentum = glm::vec3(0, 0, 0);
@@ -221,6 +244,24 @@ void GUI() {
 		ourCube->addRandomForce();
 	}
 	ImGui::SliderInt("Force Intensity", &ourCube->maxInitialForce, 0, 200);
+
+	ImGui::Checkbox("Random Star On/Off", &Cube::randomSTART);
+	if (!Cube::randomSTART) {
+		ImGui::SliderFloat("Starting X Angle", &Cube::notRandom_EulerAngles.x, 0, 360);
+		ImGui::SliderFloat("Starting Y Angle", &Cube::notRandom_EulerAngles.y, 0, 360);
+		ImGui::SliderFloat("Starting Z Angle", &Cube::notRandom_EulerAngles.z, 0, 360);
+
+		ImGui::SliderFloat("Starting X Position", &Cube::notRandom_Position.x, -3, 3);
+		ImGui::SliderFloat("Starting Y Position", &Cube::notRandom_Position.y, 2, 8);
+		ImGui::SliderFloat("Starting Z Position", &Cube::notRandom_Position.z, -3, 3);
+	}
+	if (ImGui::Button("Stop Cube")) {
+		ourCube->angularMomentum = glm::vec3(0, 0, 0);
+		ourCube->linearMomentum = glm::vec3(0, 0, 0);
+		Cube::gravityONOFF = false;
+		Cube::moveCubeONOFF = false;
+		
+	}
 	ImGui::End();
 }
 

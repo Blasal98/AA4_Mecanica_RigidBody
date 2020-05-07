@@ -17,52 +17,7 @@ extern void Exemple_PhysicsCleanup();
 
 bool show_test_window = false;
 extern const float halfW = 0.5f;
-namespace myData {
-	float indiceRebote = 2;
 
-	//planos
-	glm::vec3 XYn = glm::vec3(0, 0, 1);//normal de plano XY es Z
-	glm::vec3 YZn = glm::vec3(1, 0, 0);
-	glm::vec3 XZn = glm::vec3(0, 1, 0);
-	glm::vec3 negYZn = glm::vec3(-1, 0, 0);
-	glm::vec3 negXYn = glm::vec3(0, 0, -1);
-	glm::vec3 negXZn = glm::vec3(0, -1, 0);
-
-	glm::vec3 aux = glm::vec3(-5, 0, -5);
-	glm::vec3 aux2 = glm::vec3(-5, 0, 5);
-	glm::vec3 aux3 = glm::vec3(5, 0, -5);
-	glm::vec3 aux4 = glm::vec3(-5, 10, -5);
-	glm::vec3 vX1 = aux - aux2;
-	glm::vec3 vX2 = aux - aux3;
-
-	glm::vec3 cubeVerts[] = {
-		glm::vec3(-halfW, -halfW, -halfW),
-		glm::vec3(-halfW, -halfW,  halfW),
-		glm::vec3(halfW, -halfW,  halfW),
-		glm::vec3(halfW, -halfW, -halfW),
-		glm::vec3(-halfW,  halfW, -halfW),
-		glm::vec3(-halfW,  halfW,  halfW),
-		glm::vec3(halfW,  halfW,  halfW),
-		glm::vec3(halfW,  halfW, -halfW)
-	};
-
-	bool colisions = true;
-
-	float planeD(glm::vec3 normal, glm::vec3 point) {
-		return -(normal.x*point.x + normal.y*point.y + normal.z*point.z);
-	}
-
-	/*bool checkPointOnPlane(glm::vec3 normal, glm::vec3 pointPlane, glm::vec3 pointCheck) {
-		return ((normal.x*pointCheck.x) + (normal.y*pointCheck.y) + (normal.z*pointCheck.z) + planeD(normal, pointPlane)) == 0;
-	}*/
-	/*bool checkPointOnPlane(glm::vec3 normal, glm::vec3 pointPlane, glm::vec3 pointCheck) {
-		return ((normal.x*pointCheck.x) + (normal.y*pointCheck.y) + (normal.z*pointCheck.z) + planeD(normal, pointCheck)) == 0;
-	}*/
-	bool checkPointOnPlaneGround(glm::vec3 pointCheck) {   
-		return (pointCheck.x + 5) == 0;
-	}
-
-}
 extern bool renderCube;
 namespace Cube {
 
@@ -152,33 +107,119 @@ namespace Cube {
 }
 Cube::CubeStruct *ourCube;
 
+namespace myData {
+	float indiceRebote = 2;
 
-bool detectColision() {
+	//planos
+	glm::vec3 XYn = glm::vec3(0, 0, 1);//normal de plano XY es Z
+	glm::vec3 YZn = glm::vec3(1, 0, 0);
+	glm::vec3 XZn = glm::vec3(0, 1, 0);
+	glm::vec3 negYZn = glm::vec3(-1, 0, 0);
+	glm::vec3 negXYn = glm::vec3(0, 0, -1);
+	glm::vec3 negXZn = glm::vec3(0, -1, 0);
 
+	glm::vec3 aux = glm::vec3(-5, 0, -5);
+	glm::vec3 aux2 = glm::vec3(-5, 0, 5);
+	glm::vec3 aux3 = glm::vec3(5, 0, -5);
+	glm::vec3 aux4 = glm::vec3(-5, 10, -5);
+	glm::vec3 vX1 = aux - aux2;
+	glm::vec3 vX2 = aux - aux3;
+
+	glm::vec3 cubeVerts[] = {
+		glm::vec3(-halfW, -halfW, -halfW),
+		glm::vec3(-halfW, -halfW,  halfW),
+		glm::vec3(halfW, -halfW,  halfW),
+		glm::vec3(halfW, -halfW, -halfW),
+		glm::vec3(-halfW,  halfW, -halfW),
+		glm::vec3(-halfW,  halfW,  halfW),
+		glm::vec3(halfW,  halfW,  halfW),
+		glm::vec3(halfW,  halfW, -halfW)
+	};
+
+
+	/*
 	//Els 2 serien el costat del cub/2
-
+	float cubeSize = 0.5f;
 	//Vertices del cubo
 	// 1 1 1 es derecha abajo delante
 	// x y z
-	/*glm::vec3 aux111 = ourCube->position + glm::vec3(2, -2, -2); //derecha abajo delante
-	glm::vec3 aux112 = ourCube->position + glm::vec3(2, -2, 2); //derecha abajo detras 
-	glm::vec3 aux122 = ourCube->position + glm::vec3(2, 2, 2); //derecha arriba detras
-	glm::vec3 aux121 = ourCube->position + glm::vec3(2, 2, -2); //derecha arriba delante
-	glm::vec3 aux211 = ourCube->position + glm::vec3(-2, -2, -2); //izquierda abajo delante
-	glm::vec3 aux212 = ourCube->position + glm::vec3(-2, -2, 2); //izquierda abajo detras
-	glm::vec3 aux221 = ourCube->position + glm::vec3(-2, 2, -2); //izquierda arriba delante
-	glm::vec3 aux222 = ourCube->position + glm::vec3(-2, 2, 2); //izquierda arriba detras
+	glm::vec3 aux111 = ourCube->position + glm::vec3(cubeSize, -cubeSize, -cubeSize); //derecha abajo delante
+	glm::vec3 aux112 = ourCube->position + glm::vec3(cubeSize, -cubeSize, cubeSize); //derecha abajo detras 
+	glm::vec3 aux122 = ourCube->position + glm::vec3(cubeSize, cubeSize, cubeSize); //derecha arriba detras
+	glm::vec3 aux121 = ourCube->position + glm::vec3(cubeSize, cubeSize, -cubeSize); //derecha arriba delante
+	glm::vec3 aux211 = ourCube->position + glm::vec3(-cubeSize, -cubeSize, -cubeSize); //izquierda abajo delante
+	glm::vec3 aux212 = ourCube->position + glm::vec3(-cubeSize, -cubeSize, cubeSize); //izquierda abajo detras
+	glm::vec3 aux221 = ourCube->position + glm::vec3(-cubeSize, cubeSize, -cubeSize); //izquierda arriba delante
+	glm::vec3 aux222 = ourCube->position + glm::vec3(-cubeSize, cubeSize, cubeSize); //izquierda arriba detras
 	*/
+
+	bool colisions = true;
+
+	float planeD(glm::vec3 normal, glm::vec3 point) {
+		return -(normal.x*point.x + normal.y*point.y + normal.z*point.z);
+	}
+
+	/*bool checkPointOnPlane(glm::vec3 normal, glm::vec3 pointPlane, glm::vec3 pointCheck) {
+		return ((normal.x*pointCheck.x) + (normal.y*pointCheck.y) + (normal.z*pointCheck.z) + planeD(normal, pointPlane)) == 0;
+	}*/
+	/*bool checkPointOnPlane(glm::vec3 normal, glm::vec3 pointPlane, glm::vec3 pointCheck) {
+		return ((normal.x*pointCheck.x) + (normal.y*pointCheck.y) + (normal.z*pointCheck.z) + planeD(normal, pointCheck)) == 0;
+	}*/
+	bool checkPointOnPlaneGround(glm::vec3 pointCheck) {
+		      //eq del plano suelo: x + 5 = 0
+		return (pointCheck.x + 5) == 0;
+	}
+	bool checkPointOnPlaneGround(glm::vec3 normal, glm::vec3 pointPlane, glm::vec3 pointCheck) {
+		//eq del plano suelo: x + 5 = 0
+		return (pointCheck.x + 5) + planeD(normal,pointPlane) == 0;
+	}
+	float checkPointOnPlaneGroundF(glm::vec3 normal, glm::vec3 pointPlane, glm::vec3 pointCheck) {
+		//eq del plano suelo: x + 5 = 0
+		return (pointCheck.x + 5) + planeD(normal, pointPlane);
+	}
+	int checkPointOnPlaneGroundI(glm::vec3 normal, glm::vec3 pointPlane, glm::vec3 pointCheck) {
+		//eq del plano suelo: x + 5 = 0
+		return (pointCheck.x + 5) + planeD(normal, pointPlane);
+	}
+
+}
+bool detectColision() {
+
+	
 	
 	for (int i = 0; i < 8; i++) {
 		myData::cubeVerts[i] = glm::toMat3(ourCube->mainQuat) * myData::cubeVerts[i] + ourCube->position;
 	}
 
 	for (int i = 0; i < 8; i++) {
-		if (myData::cubeVerts[i].y < 0) {
-			Sleep(500);
+		int colisionIndex = myData::checkPointOnPlaneGroundF(myData::XZn, myData::aux, myData::cubeVerts[i]);
+		if (colisionIndex < 0.085 && colisionIndex > -0.085) {
+			std::cout << "colision" << std::endl;
+			system("pause");
 		}
+
+		/*if (myData::cubeVerts[i].y <= -5.1) {
+			
+			std::cout << "colision" << std::endl;
+			system("pause");
+		}*/
 	}
+
+	/*
+	myData::aux111 = glm::toMat3(ourCube->mainQuat) * myData::aux111 + ourCube->position;
+	myData::aux112 = glm::toMat3(ourCube->mainQuat) * myData::aux112 + ourCube->position;
+	myData::aux122 = glm::toMat3(ourCube->mainQuat) * myData::aux122 + ourCube->position;
+	myData::aux121 = glm::toMat3(ourCube->mainQuat) * myData::aux121 + ourCube->position;
+	myData::aux211 = glm::toMat3(ourCube->mainQuat) * myData::aux211 + ourCube->position;
+	myData::aux212 = glm::toMat3(ourCube->mainQuat) * myData::aux212 + ourCube->position;
+	myData::aux221 = glm::toMat3(ourCube->mainQuat) * myData::aux221 + ourCube->position;
+	myData::aux222 = glm::toMat3(ourCube->mainQuat) * myData::aux222 + ourCube->position;
+	
+	if (myData::aux111.y < -5) {
+		std::cout << "colision" << std::endl;
+			system("pause");
+	}
+	*/
 	/*if (((glm::dot(myData::XZn, aux111) + myData::planeD(myData::XZn, myData::aux))*(glm::dot(myData::XZn, aux111) + myData::planeD(myData::XZn, myData::aux))) <= 0) {
 		Sleep(500);
 
@@ -245,6 +286,10 @@ void printSpecs() {
 		}
 		std::cout << "MainQuat: " << ourCube->mainQuat[0] << " " << ourCube->mainQuat[1] << " " << ourCube->mainQuat[2] << " " << ourCube->mainQuat[3] << std::endl;
 		//std::cout << "AuxQuat: " << ourCube->auxQuat[0] << " " << ourCube->auxQuat[1] << " " << ourCube->auxQuat[2] << " " << ourCube->auxQuat[3] << std::endl;
+		std::cout << "POSITIONS: " << std::endl;
+		for (int i = 0; i < 8; i++) {
+			std::cout << "(" << myData::cubeVerts[i].x << "/" << myData::cubeVerts[i].y << "/" << myData::cubeVerts[i].z << ")" << std::endl;
+		}
 		std::cout << "--------------------------------------------------------------------" << std::endl;
 	}
 }

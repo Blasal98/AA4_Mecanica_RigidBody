@@ -213,9 +213,10 @@ bool detectColision() {
 			}*/
 
 			if (myData::cubeVerts[i].y <= 0) {
-
-				std::cout << "colision" << std::endl;
-				system("pause");
+				
+				std::cout << "-colision-" << std::endl;
+				return true;
+				//system("pause");
 			}
 		}
 	}
@@ -261,7 +262,7 @@ bool detectColision() {
 					}
 	*/
 
-	return true;
+	return false;
 
 }
 
@@ -360,11 +361,15 @@ void MyPhysicsUpdate(float dt) {
 		ourCube->mainQuat = glm::normalize(ourCube->mainQuat + ourDt * dQuat);
 		//std::cout << glm::length(ourCube->mainQuat) << std::endl;
 		//std::cout << "dQuat: " << dQuat[0] << " " << dQuat[1] << " " << dQuat[2] << " " << dQuat[3] << std::endl;
-		detectColision();
+
 		//Dibujo del Cubo Y Datos
 		glm::mat4 translation = glm::translate(glm::mat4(), ourCube->position);
+		bool col = detectColision();
 		Cube::updateCube(translation * glm::toMat4(ourCube->mainQuat));
 		printSpecs();
+		if (col) {
+			system("pause");
+		}
 	}
 }
 void MyPhysicsCleanup() {

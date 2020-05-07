@@ -58,7 +58,7 @@ namespace myData {
 	/*bool checkPointOnPlane(glm::vec3 normal, glm::vec3 pointPlane, glm::vec3 pointCheck) {
 		return ((normal.x*pointCheck.x) + (normal.y*pointCheck.y) + (normal.z*pointCheck.z) + planeD(normal, pointCheck)) == 0;
 	}*/
-	bool checkPointOnPlane(glm::vec3 normal, glm::vec3 pointPlane, glm::vec3 pointCheck) {
+	bool checkPointOnPlaneGround(glm::vec3 pointCheck) {   
 		return (pointCheck.x + 5) == 0;
 	}
 
@@ -169,42 +169,27 @@ bool detectColision() {
 	glm::vec3 aux221 = ourCube->position + glm::vec3(-2, 2, -2); //izquierda arriba delante
 	glm::vec3 aux222 = ourCube->position + glm::vec3(-2, 2, 2); //izquierda arriba detras
 	*/
+	
+	for (int i = 0; i < 8; i++) {
+		myData::cubeVerts[i] = glm::toMat3(ourCube->mainQuat) * myData::cubeVerts[i] + ourCube->position;
+	}
 
-
-
+	for (int i = 0; i < 8; i++) {
+		if (myData::cubeVerts[i].y < 0) {
+			Sleep(500);
+		}
+	}
 	/*if (((glm::dot(myData::XZn, aux111) + myData::planeD(myData::XZn, myData::aux))*(glm::dot(myData::XZn, aux111) + myData::planeD(myData::XZn, myData::aux))) <= 0) {
 		Sleep(500);
 
 	}*/
-	if (myData::checkPointOnPlane(myData::XZn, myData::aux, myData::cubeVerts[0])) {
+	/*if (
+		myData::checkPointOnPlaneGround(myData::cubeVerts[0])
+		
+		) {
 		Sleep(500);
-	}
-	/*
-	if () {
-
-	}
-	if () {
-
-	}
-	if () {
-
-	}
-	if () {
-
-	}
-	if () {
-
-	}
-	if () {
-
-	}
-	if () {
-
-	}
-	else {
-
-	}
-	*/
+	}*/
+	
 
 
 	/*if (((glm::dot(extraData::XZn, MyPS.positionI[i]) + extraData::planeD(extraData::XZn, extraData::aux))*(glm::dot(extraData::XZn, MyPS.positionF[i]) + extraData::planeD(extraData::XZn, extraData::aux))) <= 0) {

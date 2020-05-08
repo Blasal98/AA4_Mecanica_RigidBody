@@ -37,6 +37,8 @@ namespace Cube {
 	glm::vec3 notRandom_EulerAngles;
 	glm::vec3 notRandom_Position = glm::vec3(0,5,0);
 
+
+
 	struct ForceOnPoint {
 		glm::vec3 force;
 		glm::vec3 point;
@@ -70,7 +72,24 @@ namespace Cube {
 		std::vector<ForceOnPoint> forces;
 
 		glm::quat mainQuat;
-		//glm::quat auxQuat;
+		
+		std::vector<glm::vec3> vertexs;
+		std::vector<glm::vec3> vertexsLocal;
+
+
+		void updateVertexs() {
+			for (int i = 0; i < 8; i++) {
+				vertexs[i] = glm::toMat3(mainQuat) * vertexsLocal[i] + position;
+			}
+		}
+		void detectCollisions() {
+			for (int i = 0; i < 8; i++) {
+				if (vertexs[i].y < 0) {
+					
+
+				}
+			}
+		}
 
 		void addRandomForce() {
 			initialForce = glm::vec3((rand() % maxInitialForce) - maxInitialForce / 2.f, (rand() % maxInitialForce) - maxInitialForce / 2.f, (rand() % maxInitialForce) - maxInitialForce / 2.f);
@@ -119,9 +138,26 @@ namespace Cube {
 			forces.clear();
 			initialForce = glm::vec3(0, 0, 0);
 			//addRandomForce();
+
+			vertexs = vertexsLocal;
 		}
 
 		CubeStruct() {
+			for (int i = 0; i < 8; i++) {
+				vertexsLocal.push_back(glm::vec3());
+			}
+
+			vertexsLocal[0] = glm::vec3(0.5f, 0.5f, 0.5f);
+			vertexsLocal[1] = glm::vec3(-0.5f, 0.5f, 0.5f);
+			vertexsLocal[2] = glm::vec3(-0.5f, -0.5f, 0.5f);
+			vertexsLocal[3] = glm::vec3(-0.5f, -0.5f, -0.5f);
+			vertexsLocal[4] = glm::vec3(0.5f, 0.5f, -0.5f);
+			vertexsLocal[5] = glm::vec3(0.5f, -0.5f, -0.5f);
+			vertexsLocal[6] = glm::vec3(0.5f, -0.5f, 0.5f);
+			vertexsLocal[7] = glm::vec3(-0.5f, 0.5f, -0.5f);
+
+			
+			
 			cubeReset();
 		}
 	};
@@ -132,9 +168,9 @@ Cube::CubeStruct *ourCube;
 void printSpecs() {
 	if (Cube::showSpecs) {
 		std::cout << "--------------------------------------------------------------------" << std::endl;
-		//std::cout << "Position: " << ourCube->position.x << " " << ourCube->position.y << " " << ourCube->position.z << std::endl;
+		std::cout << "Position: " << ourCube->position.x << " " << ourCube->position.y << " " << ourCube->position.z << std::endl;
 		//std::cout << "Rotation: " << ourCube->rotation.x << " " << ourCube->rotation.y << " " << ourCube->rotation.z << std::endl;
-		//std::cout << "Velocity: " << ourCube->velocity.x << " " << ourCube->velocity.y << " " << ourCube->velocity.z << std::endl;
+		std::cout << "Velocity: " << ourCube->velocity.x << " " << ourCube->velocity.y << " " << ourCube->velocity.z << std::endl;
 		std::cout << "Force: " << ourCube->totalForce.x << " " << ourCube->totalForce.y << " " << ourCube->totalForce.z << std::endl;
 		std::cout << "Torque: " << ourCube->torque.x << " " << ourCube->torque.y << " " << ourCube->torque.z << std::endl;
 		//std::cout << "Num Forces: " << ourCube->forces.size() << std::endl;
@@ -165,6 +201,14 @@ void printSpecs() {
 		}
 		std::cout << "MainQuat: " << ourCube->mainQuat[0] << " " << ourCube->mainQuat[1] << " " << ourCube->mainQuat[2] << " " << ourCube->mainQuat[3] << std::endl;
 		//std::cout << "AuxQuat: " << ourCube->auxQuat[0] << " " << ourCube->auxQuat[1] << " " << ourCube->auxQuat[2] << " " << ourCube->auxQuat[3] << std::endl;
+
+		std::cout << "vertexs:" << std::endl;
+		for (int i = 0; i < 8; i++) {
+			for (int j = 0; j < 3; j++) {
+				std::cout << ourCube->vertexs[i][j] << " ";
+			}
+			std::cout << std::endl;
+		}
 		std::cout << "--------------------------------------------------------------------" << std::endl;
 	}
 }
@@ -213,6 +257,9 @@ void MyPhysicsUpdate(float dt) {
 		ourCube->mainQuat = glm::normalize(ourCube->mainQuat + ourDt * dQuat);
 		//std::cout << glm::length(ourCube->mainQuat) << std::endl;
 		//std::cout << "dQuat: " << dQuat[0] << " " << dQuat[1] << " " << dQuat[2] << " " << dQuat[3] << std::endl;
+
+		//colisions
+		ourCube->updateVertexs();
 
 		//Dibujo del Cubo Y Datos
 		glm::mat4 translation = glm::translate(glm::mat4(), ourCube->position);

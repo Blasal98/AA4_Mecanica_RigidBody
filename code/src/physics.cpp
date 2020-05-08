@@ -136,6 +136,18 @@ namespace myData {
 		glm::vec3(halfW,  halfW,  halfW) ,
 		glm::vec3(halfW,  halfW, -halfW) 
 	};
+
+	glm::vec3 PREcubeVerts[] = {
+		glm::vec3(-halfW, -halfW, -halfW),
+		glm::vec3(-halfW, -halfW,  halfW),
+		glm::vec3(halfW, -halfW,  halfW) ,
+		glm::vec3(halfW, -halfW, -halfW) ,
+		glm::vec3(-halfW,  halfW, -halfW),
+		glm::vec3(-halfW,  halfW,  halfW),
+		glm::vec3(halfW,  halfW,  halfW) ,
+		glm::vec3(halfW,  halfW, -halfW)
+	};
+
 	glm::vec3 initialCubeVerts[] = {
 		glm::vec3(-halfW, -halfW, -halfW),
 		glm::vec3(-halfW, -halfW,  halfW),
@@ -203,14 +215,29 @@ bool detectColision() {
 	
 	if (ourCube->position != ourCube->lastPosition) {
 		for (int i = 0; i < 8; i++) {
+			myData::PREcubeVerts[i] = myData::cubeVerts[i];
 			myData::cubeVerts[i] = glm::toMat3(ourCube->mainQuat) * myData::initialCubeVerts[i] + ourCube->position;
-			
+			myData::PREcubeVerts[i] += ourCube->position;
 			
 		}
 
 
 
 		for (int i = 0; i < 8; i++) {
+			//                              inicial                                                                                    final
+			if (((glm::dot(myData::XZn, myData::PREcubeVerts[i]) + myData::planeD(myData::XZn, myData::aux))*(glm::dot(myData::XZn, myData::cubeVerts[i]) + myData::planeD(myData::XZn, myData::aux))) <= 0) {
+				std::cout << "-colision-" << std::endl;
+
+			}
+
+			/*if (myData::cubeVerts[i].y <= 0) {
+				
+				std::cout << "-colision-" << std::endl;
+				return true;
+				//system("pause");
+			}*/
+
+
 			/*if (ourCube->position.y <= 0) {
 				std::cout << "colision" << std::endl;
 				system("pause");
@@ -230,12 +257,6 @@ bool detectColision() {
 				system("pause");
 			}*/
 
-			/*if (myData::cubeVerts[i].y <= 0) {
-				
-				std::cout << "-colision-" << std::endl;
-				return true;
-				//system("pause");
-			}*/
 		}
 	}
 

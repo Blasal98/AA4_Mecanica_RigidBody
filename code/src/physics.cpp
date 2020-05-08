@@ -107,6 +107,7 @@ namespace Cube {
 
 }
 Cube::CubeStruct *ourCube;
+Cube::CubeStruct *auxCube;
 
 namespace myData {
 	float indiceRebote = 2;
@@ -396,14 +397,16 @@ void MyPhysicsInit() {
 	for (int i = 0; i < 8; i++) {
 		myData::cubeVerts[i] += ourCube->position;
 		
-
 	}
 
 	printSpecs();
 }
 
+
+
 void MyPhysicsUpdate(float dt) {
 	float ourDt = dt;
+
 	if (renderCube) {
 
 		ourCube->totalForce = glm::vec3(0,0,0);
@@ -422,7 +425,12 @@ void MyPhysicsUpdate(float dt) {
 		if (Cube::moveCubeONOFF) {
 			ourCube->lastPosition = ourCube->position;//guardamos la pos anterior para ver si ha cambiado mas adelante
 			ourCube->position += ourDt * ourCube->velocity;
+		}
+
+		bool col = detectColision();
+		if (col) {
 			
+			system("pause");
 		}
 		ourCube->inertiaMatrix = glm::toMat3(ourCube->mainQuat) * glm::inverse(ourCube->inertiaBody) * glm::transpose(glm::toMat3(ourCube->mainQuat));
 		ourCube->angularVelocity = ourCube->inertiaMatrix * ourCube->angularMomentum;
@@ -437,11 +445,8 @@ void MyPhysicsUpdate(float dt) {
 		//Dibujo del Cubo Y Datos
 		glm::mat4 translation = glm::translate(glm::mat4(), ourCube->position);
 		Cube::updateCube(translation * glm::toMat4(ourCube->mainQuat));
-		bool col = detectColision();
+		
 		printSpecs();
-		if (col) {
-			system("pause");
-		}
 	}
 }
 void MyPhysicsCleanup() {

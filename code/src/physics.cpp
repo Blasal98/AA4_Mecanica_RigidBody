@@ -194,6 +194,8 @@ bool detectColision() {
 	if (ourCube->position != ourCube->lastPosition) {
 		for (int i = 0; i < 8; i++) {
 			myData::cubeVerts[i] = glm::toMat3(ourCube->mainQuat) * myData::cubeVerts[i] + ourCube->position;
+			
+			
 		}
 
 
@@ -349,8 +351,9 @@ void MyPhysicsUpdate(float dt) {
 		ourCube->angularMomentum += ourDt * ourCube->torque;
 		ourCube->velocity = ourCube->linearMomentum / (float)Cube::mass;
 		if (Cube::moveCubeONOFF) {
-			ourCube->lastPosition = ourCube->position;
+			ourCube->lastPosition = ourCube->position;//guardamos la pos anterior para ver si ha cambiado mas adelante
 			ourCube->position += ourDt * ourCube->velocity;
+			
 		}
 		ourCube->inertiaMatrix = glm::toMat3(ourCube->mainQuat) * glm::inverse(ourCube->inertiaBody) * glm::transpose(glm::toMat3(ourCube->mainQuat));
 		ourCube->angularVelocity = ourCube->inertiaMatrix * ourCube->angularMomentum;
@@ -364,8 +367,8 @@ void MyPhysicsUpdate(float dt) {
 
 		//Dibujo del Cubo Y Datos
 		glm::mat4 translation = glm::translate(glm::mat4(), ourCube->position);
-		bool col = detectColision();
 		Cube::updateCube(translation * glm::toMat4(ourCube->mainQuat));
+		bool col = detectColision();
 		printSpecs();
 		if (col) {
 			system("pause");

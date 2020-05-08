@@ -37,6 +37,8 @@ namespace Cube {
 	glm::vec3 notRandom_EulerAngles;
 	glm::vec3 notRandom_Position = glm::vec3(0,5,0);
 
+	bool collisionONOFF = false;
+
 
 
 	struct ForceOnPoint {
@@ -77,6 +79,8 @@ namespace Cube {
 		std::vector<glm::vec3> vertexs;
 		std::vector<glm::vec3> vertexsLocal;
 
+		bool colliding;
+
 		//bool wasCollision;
 
 		void updateVertexs() {
@@ -86,38 +90,37 @@ namespace Cube {
 		}
 		void detectCollisions(float dt) {
 			bool detectionDone = false;
-			
+			colliding = false;
+			glm::vec3 colVertex;
 			for (int i = 0; i < 8; i++) {
 				if (vertexs[i].y < 0) {
 					if (!detectionDone) {
 						detectionDone = true;
+						colVertex = vertexs[i];
+
 					}
-					forces.push_back(Cube::ForceOnPoint(glm::vec3(0, 9.81f, 0), vertexs[i]));
 				}
-			}
-			for (int i = 0; i < forces.size(); i++) {
-				forces[i].force /= forces.size();
 			}
 			
-			if (detectionDone) {
-				float auxLengthA = glm::length(angularMomentum);
-				angularMomentum = glm::vec3(0, 0, 0);
-				float auxLengthL = glm::length(linearMomentum);
-				linearMomentum = glm::vec3(0, 0, 0);
+			if (detectionDone && collisionONOFF) {
+				glm::vec3 normal = glm::vec3(0,1,0);
+				glm::vec3 vComPdc = colVertex - position;
+				glm::vec3 auxVel;
+				if (glm::length(angularVelocity) > 0)
+					auxVel = velocity + glm::cross(angularVelocity, vComPdc - (glm::dot(angularVelocity, vComPdc) / std::pow(glm::length(angularVelocity), 2) * angularVelocity));
+				else
+					auxVel = velocity;
 
-				totalForce = glm::vec3(0, 0, 0);
-				torque = glm::vec3(0, 0, 0);
 
-				for (int i = 0; i < forces.size(); i++) {
-					totalForce += forces.at(i).force;
-					torque += glm::cross(forces.at(i).point - position, forces[i].force);
-				}
-				forces.clear();
-				linearMomentum += dt * totalForce;
-				linearMomentum = glm::normalize(linearMomentum)*auxLengthL*0.9f;
-				angularMomentum += dt * torque;
-				if(auxLengthA !=0)
-					angularMomentum = glm::normalize(angularMomentum)*auxLengthA;
+				float j = (1 + 1) * glm::length(auxVel) / ((1/mass)+glm::dot(normal,glm::cross(inertiaMatrix * glm::cross(vComPdc,normal),vComPdc)));
+				glm::vec3 J = normal * j;
+				
+				std::cout << "                                                                                " << J.x << " " << J.y << " " << J.z << std::endl;
+
+				//std::cout << glm::length();
+				linearMomentum += J*dt;
+				angularMomentum += glm::cross(vComPdc,J)*dt;
+				
 				velocity = linearMomentum / (float)Cube::mass;
 				position += dt * velocity;
 
@@ -130,18 +133,24 @@ namespace Cube {
 				glm::quat dQuat = (1.f / 2.f) * auxAngVel * mainQuat;
 				mainQuat = glm::normalize(mainQuat + dt * dQuat);
 
-				std::cout << "                                                                                                         Collision";
+				//std::cout << "                                                                                                         Collision";
 				updateVertexs();
+				/*collisionONOFF = false;
+				angularMomentum = glm::vec3(0, 0, 0);
+				linearMomentum = glm::vec3(0, 0, 0);
+				Cube::gravityONOFF = false;
+				Cube::moveCubeONOFF = false;*/
+				colliding = true;
 			}
-			std::cout << "x"<< std::endl;
+			std::cout <<  colliding<< std::endl;
 		}
 
 		void addRandomForce() {
-			initialForce = glm::vec3((rand() % maxInitialForce) - maxInitialForce / 2.f, (rand() % maxInitialForce) - maxInitialForce / 2.f, (rand() % maxInitialForce) - maxInitialForce / 2.f);
-			//initialForce = glm::vec3(0,0,5);
+			//initialForce = glm::vec3((rand() % maxInitialForce) - maxInitialForce / 2.f, (rand() % maxInitialForce) - maxInitialForce / 2.f, (rand() % maxInitialForce) - maxInitialForce / 2.f);
+			initialForce = glm::vec3(5,0,0);
 			
-			initialForcePoint = glm::toMat3(mainQuat) * glm::vec3((float) rand()/RAND_MAX, (float)rand() / RAND_MAX, (float)rand() / RAND_MAX) + position;
-			//initialForcePoint = glm::toMat3(mainQuat) * glm::vec3(0.5f, 0.5f, 0.5f) + position;
+			//initialForcePoint = glm::toMat3(mainQuat) * glm::vec3((float) rand()/RAND_MAX, (float)rand() / RAND_MAX, (float)rand() / RAND_MAX) + position;
+			initialForcePoint = glm::toMat3(mainQuat) * glm::vec3(0.5f, 0.5f, 0.f) + position;
 			forces.push_back(ForceOnPoint(initialForce, initialForcePoint));
 
 			//std::cout << "Initial Force Point: " << initialForcePoint.x << " " << initialForcePoint.y << " " << initialForcePoint.z << std::endl;
@@ -187,6 +196,7 @@ namespace Cube {
 
 			vertexs = vertexsLocal;
 			//wasCollision = false;
+			colliding = false;
 		}
 
 		CubeStruct() {
@@ -278,43 +288,44 @@ void MyPhysicsInit() {
 void MyPhysicsUpdate(float dt) {
 	float ourDt = dt;
 	if (renderCube) {
+		if (!ourCube->colliding) {
+			ourCube->totalForce = glm::vec3(0, 0, 0);
+			ourCube->torque = glm::vec3(0, 0, 0);
+			if (Cube::gravityONOFF)
+				ourCube->forces.push_back(Cube::ForceOnPoint(Cube::gravity, ourCube->position));
+			for (int i = 0; i < ourCube->forces.size(); i++) {
+				ourCube->totalForce += ourCube->forces.at(i).force;
+				ourCube->torque += glm::cross(ourCube->forces.at(i).point - ourCube->position, ourCube->forces[i].force);
+			}
+			ourCube->forces.clear();
 
-		ourCube->totalForce = glm::vec3(0,0,0);
-		ourCube->torque = glm::vec3(0,0,0);
-		if (Cube::gravityONOFF)
-			ourCube->forces.push_back(Cube::ForceOnPoint(Cube::gravity, ourCube->position));
-		for (int i = 0; i < ourCube->forces.size(); i++) {
-			ourCube->totalForce += ourCube->forces.at(i).force;
-			ourCube->torque += glm::cross(ourCube->forces.at(i).point - ourCube->position, ourCube->forces[i].force);
-		}
-		ourCube->forces.clear();
+			if (Cube::moveCubeONOFF) {
+				ourCube->linearMomentum += ourDt * ourCube->totalForce;
+			}
+			else {
+				ourCube->linearMomentum = glm::vec3(0, 0, 0);
+			}
+			ourCube->angularMomentum += ourDt * ourCube->torque;
+			ourCube->velocity = ourCube->linearMomentum / (float)Cube::mass;
+			if (Cube::moveCubeONOFF /*&& !ourCube->wasCollision*/) {
+				ourCube->position += ourDt * ourCube->velocity;
+			}
+			//else if (ourCube->//wasCollision)
+			//	ourCube->wasCollision = false;
 
-		if (Cube::moveCubeONOFF) {
-			ourCube->linearMomentum += ourDt * ourCube->totalForce;
-		}
-		else {
-			ourCube->linearMomentum = glm::vec3(0,0,0);
-		}
-		ourCube->angularMomentum += ourDt * ourCube->torque;
-		ourCube->velocity = ourCube->linearMomentum / (float)Cube::mass;
-		if (Cube::moveCubeONOFF /*&& !ourCube->wasCollision*/) {
-			ourCube->position += ourDt * ourCube->velocity;
-		}
-		//else if (ourCube->//wasCollision)
-		//	ourCube->wasCollision = false;
+			ourCube->inertiaMatrix = glm::toMat3(ourCube->mainQuat) * glm::inverse(ourCube->inertiaBody) * glm::transpose(glm::toMat3(ourCube->mainQuat));
+			ourCube->angularVelocity = ourCube->inertiaMatrix * ourCube->angularMomentum;
 
-		ourCube->inertiaMatrix = glm::toMat3(ourCube->mainQuat) * glm::inverse(ourCube->inertiaBody) * glm::transpose(glm::toMat3(ourCube->mainQuat));
-		ourCube->angularVelocity = ourCube->inertiaMatrix * ourCube->angularMomentum;
-		
-		//Rotacio
-		glm::quat auxAngVel = glm::quat(0, ourCube->angularVelocity);
-		glm::quat dQuat = (1.f / 2.f) * auxAngVel * ourCube->mainQuat;
-		ourCube->mainQuat = glm::normalize(ourCube->mainQuat + ourDt * dQuat);
-		//std::cout << glm::length(ourCube->mainQuat) << std::endl;
-		//std::cout << "dQuat: " << dQuat[0] << " " << dQuat[1] << " " << dQuat[2] << " " << dQuat[3] << std::endl;
+			//Rotacio
+			glm::quat auxAngVel = glm::quat(0, ourCube->angularVelocity);
+			glm::quat dQuat = (1.f / 2.f) * auxAngVel * ourCube->mainQuat;
+			ourCube->mainQuat = glm::normalize(ourCube->mainQuat + ourDt * dQuat);
+			//std::cout << glm::length(ourCube->mainQuat) << std::endl;
+			//std::cout << "dQuat: " << dQuat[0] << " " << dQuat[1] << " " << dQuat[2] << " " << dQuat[3] << std::endl;
 
-		//colisions
-		ourCube->updateVertexs();
+			//colisions
+			ourCube->updateVertexs();
+		}
 		ourCube->detectCollisions(ourDt);
 		ourCube->lastQuat = ourCube->mainQuat;
 
@@ -341,6 +352,7 @@ void GUI() {
 	ImGui::Checkbox("Show Specs", &Cube::showSpecs);
 	ImGui::Checkbox("Gravity On/Off", &Cube::gravityONOFF);
 	ImGui::Checkbox("Cube moves On/Off", &Cube::moveCubeONOFF);
+	ImGui::Checkbox("Collision On/Off", &Cube::collisionONOFF);
 	if(ImGui::Button("Reset")) {
 		ourCube->cubeReset();
 	}

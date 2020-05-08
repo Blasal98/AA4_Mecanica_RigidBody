@@ -217,7 +217,7 @@ bool detectColision() {
 		for (int i = 0; i < 8; i++) {
 			myData::PREcubeVerts[i] = myData::cubeVerts[i];
 			myData::cubeVerts[i] = glm::toMat3(ourCube->mainQuat) * myData::initialCubeVerts[i] + ourCube->position;
-			myData::PREcubeVerts[i] += ourCube->position;
+			//myData::PREcubeVerts[i] += ourCube->position;
 			
 		}
 
@@ -227,38 +227,38 @@ bool detectColision() {
 			//                              inicial                                                                                    final
 			if (((glm::dot(myData::XZn, myData::PREcubeVerts[i]) + myData::planeD(myData::XZn, myData::aux))*(glm::dot(myData::XZn, myData::cubeVerts[i]) + myData::planeD(myData::XZn, myData::aux))) <= 0) {
 				std::cout << "-colision GROUND-" << std::endl;
-				system("pause");
+				return true;
 			}
 			
 			//plano derecha
 			if (((glm::dot(myData::negYZn, myData::PREcubeVerts[i]) + myData::planeD(myData::negYZn, myData::aux3))*(glm::dot(myData::negYZn, myData::cubeVerts[i]) + myData::planeD(myData::negYZn, myData::aux3))) <= 0) {
 				std::cout << "-colision RIGHT-" << std::endl;
-				system("pause");
+				return true;
 			}
 
 			//plano delante
 			if (((glm::dot(myData::negXYn, myData::PREcubeVerts[i]) + myData::planeD(myData::negXYn, myData::aux3))*(glm::dot(myData::negXYn, myData::cubeVerts[i]) + myData::planeD(myData::negXYn, myData::aux3))) <= 0) {
 				std::cout << "-colision FRONT-" << std::endl;
-				system("pause");
+				return true;
 			}
 
 			//plano detras
 			if (((glm::dot(myData::XYn, myData::PREcubeVerts[i]) + myData::planeD(myData::XYn, myData::aux2))*(glm::dot(myData::XYn, myData::cubeVerts[i]) + myData::planeD(myData::XYn, myData::aux2))) <= 0) {
 				std::cout << "-colision BACK-" << std::endl;
-				system("pause");
+				return true;
 			}
 
 			//plano izquierda
 			if (((glm::dot(myData::YZn, myData::PREcubeVerts[i]) + myData::planeD(myData::YZn, myData::aux2))*(glm::dot(myData::YZn, myData::cubeVerts[i]) + myData::planeD(myData::YZn, myData::aux2))) <= 0) {
 				std::cout << "-colision LEFT-" << std::endl;
-				system("pause");
+				return true;	
 			}
-			/*
+			
 			//plano arriba
 			if (((glm::dot(myData::negXZn, myData::PREcubeVerts[i]) + myData::planeD(myData::negXZn, myData::aux4))*(glm::dot(myData::negXZn, myData::cubeVerts[i]) + myData::planeD(myData::negXZn, myData::aux4))) <= 0) {
 				std::cout << "-colision ROOF-" << std::endl;
-				system("pause");
-			}*/
+				return true;
+			}
 			
 
 

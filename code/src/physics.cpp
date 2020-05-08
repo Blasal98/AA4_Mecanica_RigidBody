@@ -136,6 +136,16 @@ namespace myData {
 		glm::vec3(halfW,  halfW,  halfW) ,
 		glm::vec3(halfW,  halfW, -halfW) 
 	};
+	glm::vec3 initialCubeVerts[] = {
+		glm::vec3(-halfW, -halfW, -halfW),
+		glm::vec3(-halfW, -halfW,  halfW),
+		glm::vec3(halfW, -halfW,  halfW) ,
+		glm::vec3(halfW, -halfW, -halfW) ,
+		glm::vec3(-halfW,  halfW, -halfW),
+		glm::vec3(-halfW,  halfW,  halfW),
+		glm::vec3(halfW,  halfW,  halfW) ,
+		glm::vec3(halfW,  halfW, -halfW)
+	};
 
 
 	/*
@@ -193,7 +203,7 @@ bool detectColision() {
 	
 	if (ourCube->position != ourCube->lastPosition) {
 		for (int i = 0; i < 8; i++) {
-			myData::cubeVerts[i] = glm::toMat3(ourCube->mainQuat) * myData::cubeVerts[i] + ourCube->position;
+			myData::cubeVerts[i] = glm::toMat3(ourCube->mainQuat) * myData::initialCubeVerts[i] + ourCube->position;
 			
 			
 		}
@@ -207,19 +217,25 @@ bool detectColision() {
 			}*/
 
 
-			/*
-			float colisionIndex = myData::checkPointOnPlaneGroundFD(myData::XZn, myData::aux, myData::cubeVerts[i]);
+			
+			/*float colisionIndex = myData::checkPointOnPlaneGroundFD(myData::XZn, myData::aux, myData::cubeVerts[i]);
 			if (colisionIndex < 0.085 && colisionIndex > -0.085) {
 				std::cout << "colision" << std::endl;
 				system("pause");
 			}*/
 
-			if (myData::cubeVerts[i].y <= 0) {
+			/*float colisionIndex = myData::checkPointOnPlaneGround(myData::cubeVerts[i]);
+			if (colisionIndex) {
+				std::cout << "colision" << std::endl;
+				system("pause");
+			}*/
+
+			/*if (myData::cubeVerts[i].y <= 0) {
 				
 				std::cout << "-colision-" << std::endl;
 				return true;
 				//system("pause");
-			}
+			}*/
 		}
 	}
 
@@ -256,13 +272,7 @@ bool detectColision() {
 		MyPS.positionF[i] = MyPS.positionF[i] - 2 * (glm::dot(extraData::XZn, MyPS.positionF[i]) + extraData::planeD(extraData::XZn, extraData::aux))*extraData::XZn;
 		MyPS.velF[i] = MyPS.velF[i] - 2 * (glm::dot(extraData::XZn, MyPS.velF[i]))*extraData::XZn;
 	}*/
-	/*
-	if (((glm::dot(myData::XZn, myPM.points[i][j].actualPosition) + myData::planeD(myData::XZn, myData::aux))*(glm::dot(myData::XZn, myPM.points[i][j].newPosition) + myData::planeD(myData::XZn, myData::aux))) <= 0) {
-
-						myPM.points[i][j].newPosition = myPM.points[i][j].newPosition - (1 + myPM.E) * (glm::dot(myData::XZn, myPM.points[i][j].newPosition) + myData::planeD(myData::XZn, myData::aux))*myData::XZn;
-
-					}
-	*/
+	
 
 	return false;
 
@@ -328,6 +338,8 @@ void MyPhysicsInit() {
 	ourCube->lastPosition = ourCube->position;
 	for (int i = 0; i < 8; i++) {
 		myData::cubeVerts[i] += ourCube->position;
+		
+
 	}
 
 	printSpecs();

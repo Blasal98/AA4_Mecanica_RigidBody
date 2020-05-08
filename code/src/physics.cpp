@@ -72,23 +72,68 @@ namespace Cube {
 		std::vector<ForceOnPoint> forces;
 
 		glm::quat mainQuat;
+		glm::quat lastQuat;
 		
 		std::vector<glm::vec3> vertexs;
 		std::vector<glm::vec3> vertexsLocal;
 
+		//bool wasCollision;
 
 		void updateVertexs() {
 			for (int i = 0; i < 8; i++) {
 				vertexs[i] = glm::toMat3(mainQuat) * vertexsLocal[i] + position;
 			}
 		}
-		void detectCollisions() {
+		void detectCollisions(float dt) {
+			bool detectionDone = false;
+			
 			for (int i = 0; i < 8; i++) {
 				if (vertexs[i].y < 0) {
-					
-
+					if (!detectionDone) {
+						detectionDone = true;
+					}
+					forces.push_back(Cube::ForceOnPoint(glm::vec3(0, 9.81f, 0), vertexs[i]));
 				}
 			}
+			for (int i = 0; i < forces.size(); i++) {
+				forces[i].force /= forces.size();
+			}
+			
+			if (detectionDone) {
+				float auxLengthA = glm::length(angularMomentum);
+				angularMomentum = glm::vec3(0, 0, 0);
+				float auxLengthL = glm::length(linearMomentum);
+				linearMomentum = glm::vec3(0, 0, 0);
+
+				totalForce = glm::vec3(0, 0, 0);
+				torque = glm::vec3(0, 0, 0);
+
+				for (int i = 0; i < forces.size(); i++) {
+					totalForce += forces.at(i).force;
+					torque += glm::cross(forces.at(i).point - position, forces[i].force);
+				}
+				forces.clear();
+				linearMomentum += dt * totalForce;
+				linearMomentum = glm::normalize(linearMomentum)*auxLengthL*0.9f;
+				angularMomentum += dt * torque;
+				if(auxLengthA !=0)
+					angularMomentum = glm::normalize(angularMomentum)*auxLengthA;
+				velocity = linearMomentum / (float)Cube::mass;
+				position += dt * velocity;
+
+
+				inertiaMatrix = glm::toMat3(mainQuat) * glm::inverse(inertiaBody) * glm::transpose(glm::toMat3(mainQuat));
+				angularVelocity = inertiaMatrix * angularMomentum;
+
+				//Rotacio
+				glm::quat auxAngVel = glm::quat(0, angularVelocity);
+				glm::quat dQuat = (1.f / 2.f) * auxAngVel * mainQuat;
+				mainQuat = glm::normalize(mainQuat + dt * dQuat);
+
+				std::cout << "                                                                                                         Collision";
+				updateVertexs();
+			}
+			std::cout << "x"<< std::endl;
 		}
 
 		void addRandomForce() {
@@ -128,6 +173,7 @@ namespace Cube {
 				mainQuat[1] = s1 * c2 * c3 + c1 * s2 * s3;
 				mainQuat[2] = c1 * s2 * c3 - s1 * c2 * s3;
 			}
+			lastQuat = mainQuat;
 
 			velocity = glm::vec3(0, 0, 0);
 			linearMomentum = glm::vec3(0, 0, 0);
@@ -140,6 +186,7 @@ namespace Cube {
 			//addRandomForce();
 
 			vertexs = vertexsLocal;
+			//wasCollision = false;
 		}
 
 		CubeStruct() {
@@ -242,11 +289,19 @@ void MyPhysicsUpdate(float dt) {
 		}
 		ourCube->forces.clear();
 
-		ourCube->linearMomentum += ourDt * ourCube->totalForce;
+		if (Cube::moveCubeONOFF) {
+			ourCube->linearMomentum += ourDt * ourCube->totalForce;
+		}
+		else {
+			ourCube->linearMomentum = glm::vec3(0,0,0);
+		}
 		ourCube->angularMomentum += ourDt * ourCube->torque;
 		ourCube->velocity = ourCube->linearMomentum / (float)Cube::mass;
-		if(Cube::moveCubeONOFF)
+		if (Cube::moveCubeONOFF /*&& !ourCube->wasCollision*/) {
 			ourCube->position += ourDt * ourCube->velocity;
+		}
+		//else if (ourCube->//wasCollision)
+		//	ourCube->wasCollision = false;
 
 		ourCube->inertiaMatrix = glm::toMat3(ourCube->mainQuat) * glm::inverse(ourCube->inertiaBody) * glm::transpose(glm::toMat3(ourCube->mainQuat));
 		ourCube->angularVelocity = ourCube->inertiaMatrix * ourCube->angularMomentum;
@@ -260,6 +315,8 @@ void MyPhysicsUpdate(float dt) {
 
 		//colisions
 		ourCube->updateVertexs();
+		ourCube->detectCollisions(ourDt);
+		ourCube->lastQuat = ourCube->mainQuat;
 
 		//Dibujo del Cubo Y Datos
 		glm::mat4 translation = glm::translate(glm::mat4(), ourCube->position);

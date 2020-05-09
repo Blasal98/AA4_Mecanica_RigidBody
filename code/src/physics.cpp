@@ -430,7 +430,7 @@ void MyPhysicsInit() {
 	printSpecs();
 }
 
-void updateAux(float dt) {
+float updateAux(float dt) {
 	auxCube->linearMomentum = myData::linealReference;
 
 	auxCube->linearMomentum = ourCube->linearMomentum + dt * ourCube->totalForce;
@@ -439,10 +439,38 @@ void updateAux(float dt) {
 	auxCube->lastPosition = auxCube->position;//esto igual se quita
 	auxCube->position = ourCube->position + dt * auxCube->velocity;
 
+	if (detectColision()) {
+		updateAux(dt / 2);
+	}
+	else {
+		//setear los nuevos datos que hemos calculado en el cubo bueno para sacar lo demas
+		//ourCube = auxCube;
+		ourCube->position = auxCube->position;
+		ourCube->linearMomentum = auxCube->linearMomentum;
+		ourCube->velocity = auxCube->velocity;
+
+		ourCube->inertiaMatrix = glm::toMat3(ourCube->mainQuat) * glm::inverse(ourCube->inertiaBody) * glm::transpose(glm::toMat3(ourCube->mainQuat));
+		ourCube->angularVelocity = ourCube->inertiaMatrix * ourCube->angularMomentum;
+
+		//Rotacio
+		glm::quat auxAngVel = glm::quat(0, ourCube->angularVelocity);
+		glm::quat dQuat = (1.f / 2.f) * auxAngVel * ourCube->mainQuat;
+		ourCube->mainQuat = glm::normalize(ourCube->mainQuat + dt * dQuat);
+		//std::cout << glm::length(ourCube->mainQuat) << std::endl;
+		//std::cout << "dQuat: " << dQuat[0] << " " << dQuat[1] << " " << dQuat[2] << " " << dQuat[3] << std::endl;
+
+		//Dibujo del Cubo Y Datos
+		glm::mat4 translation = glm::translate(glm::mat4(), ourCube->position);
+		Cube::updateCube(translation * glm::toMat4(ourCube->mainQuat));
+
+		return dt;
+	}
+
 }
 
 void MyPhysicsUpdate(float dt) {
 	float ourDt = dt;
+	float newDT;
 
 	//Save data for the colision
 	myData::linealReference = ourCube->linearMomentum;
@@ -471,24 +499,24 @@ void MyPhysicsUpdate(float dt) {
 
 		bool col = detectColision();
 		if (col) {
-			//updateAux(dt);
-			system("pause");
+			newDT = updateAux(dt / 2);
+			//system("pause");
 		}
+		else {
+			ourCube->inertiaMatrix = glm::toMat3(ourCube->mainQuat) * glm::inverse(ourCube->inertiaBody) * glm::transpose(glm::toMat3(ourCube->mainQuat));
+			ourCube->angularVelocity = ourCube->inertiaMatrix * ourCube->angularMomentum;
 
-		ourCube->inertiaMatrix = glm::toMat3(ourCube->mainQuat) * glm::inverse(ourCube->inertiaBody) * glm::transpose(glm::toMat3(ourCube->mainQuat));
-		ourCube->angularVelocity = ourCube->inertiaMatrix * ourCube->angularMomentum;
-		
-		//Rotacio
-		glm::quat auxAngVel = glm::quat(0, ourCube->angularVelocity);
-		glm::quat dQuat = (1.f / 2.f) * auxAngVel * ourCube->mainQuat;
-		ourCube->mainQuat = glm::normalize(ourCube->mainQuat + ourDt * dQuat);
-		//std::cout << glm::length(ourCube->mainQuat) << std::endl;
-		//std::cout << "dQuat: " << dQuat[0] << " " << dQuat[1] << " " << dQuat[2] << " " << dQuat[3] << std::endl;
+			//Rotacio
+			glm::quat auxAngVel = glm::quat(0, ourCube->angularVelocity);
+			glm::quat dQuat = (1.f / 2.f) * auxAngVel * ourCube->mainQuat;
+			ourCube->mainQuat = glm::normalize(ourCube->mainQuat + ourDt * dQuat);
+			//std::cout << glm::length(ourCube->mainQuat) << std::endl;
+			//std::cout << "dQuat: " << dQuat[0] << " " << dQuat[1] << " " << dQuat[2] << " " << dQuat[3] << std::endl;
 
-		//Dibujo del Cubo Y Datos
-		glm::mat4 translation = glm::translate(glm::mat4(), ourCube->position);
-		Cube::updateCube(translation * glm::toMat4(ourCube->mainQuat));
-		
+			//Dibujo del Cubo Y Datos
+			glm::mat4 translation = glm::translate(glm::mat4(), ourCube->position);
+			Cube::updateCube(translation * glm::toMat4(ourCube->mainQuat));
+		}
 		printSpecs();
 	}
 }

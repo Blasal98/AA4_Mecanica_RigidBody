@@ -406,19 +406,20 @@ void updateAux(float dt) {
 		ourCube->linearMomentum = auxCube->linearMomentum;
 		ourCube->velocity = auxCube->velocity;
 
-		ourCube->inertiaMatrix = glm::toMat3(ourCube->mainQuat) * glm::inverse(ourCube->inertiaBody) * glm::transpose(glm::toMat3(ourCube->mainQuat));
-		ourCube->angularVelocity = ourCube->inertiaMatrix * ourCube->angularMomentum;
+		//PASO 2 calcular nueva posicion despues de colisionar
+		nextDT = ourDt - dt; //calculamos el tiempo que nos queda disponible
 
 		//Rotacio
 		glm::quat auxAngVel = glm::quat(0, ourCube->angularVelocity);
 		glm::quat dQuat = (1.f / 2.f) * auxAngVel * ourCube->mainQuat;
-		ourCube->mainQuat = glm::normalize(ourCube->mainQuat + dt * dQuat);
+		ourCube->mainQuat = glm::normalize(ourCube->mainQuat + nextDT * dQuat);
 		//std::cout << glm::length(ourCube->mainQuat) << std::endl;
 		//std::cout << "dQuat: " << dQuat[0] << " " << dQuat[1] << " " << dQuat[2] << " " << dQuat[3] << std::endl;
 
+		ourCube->inertiaMatrix = glm::toMat3(ourCube->mainQuat) * glm::inverse(ourCube->inertiaBody) * glm::transpose(glm::toMat3(ourCube->mainQuat));
+		ourCube->angularVelocity = ourCube->inertiaMatrix * ourCube->angularMomentum;
 
-		//PASO 2 calcular nueva posicion despues de colisionar
-		nextDT = ourDt - dt; //calculamos el tiempo que nos queda disponible
+		
 
 		int i = 0;
 		bool out = false;
@@ -440,7 +441,8 @@ void updateAux(float dt) {
 			//glm::vec3 j = (-(1 + e)*vRel / ((1 / (float)Cube::mass) + glm::dot(myData::XZn * (ourCube->inertiaMatrix * glm::cross(glm::toMat3(ourCube->mainQuat)*myData::initialCubeVerts[i] * ourCube->position, myData::XZn)), myData::auxCubeVerts[i])));
 			//glm::vec3 j = (-(1 + e)*vRel / ((1 / (float)Cube::mass) + glm::dot(myData::XZn , glm::cross(ourCube->inertiaMatrix * glm::cross(glm::toMat3(ourCube->mainQuat)*myData::initialCubeVerts[i] * ourCube->position, myData::XZn)), myData::auxCubeVerts[i])));
 
-			glm::vec3 j = (-(1 + e)*vRel) / (1.f / (float)Cube::mass) + glm::dot<float>(myData::XZn, glm::cross(ourCube->inertiaMatrix * glm::cross(glm::toMat3(ourCube->mainQuat)*myData::initialCubeVerts[i] + ourCube->position, myData::XZn), ourCube->mainQuat*myData::initialCubeVerts[i] + ourCube->position));
+			//glm::vec3 j = (-(1 + e)*vRel) / (1.f / (float)Cube::mass) + glm::dot<float>(myData::XZn, glm::cross(ourCube->inertiaMatrix * glm::cross(glm::toMat3(ourCube->mainQuat)*myData::initialCubeVerts[i] + ourCube->position, myData::XZn), ourCube->mainQuat*myData::initialCubeVerts[i] + ourCube->position));
+			glm::vec3 j = (-(1 + e)*vRel) / (1.f / (float)Cube::mass) + glm::dot<float>(myData::XZn, glm::cross(ourCube->inertiaMatrix * glm::cross(myData::auxCubeVerts[i]-ourCube->position, myData::XZn), myData::auxCubeVerts[i] - ourCube->position));
 
 
 			glm::vec3 J = j * myData::XZn;
@@ -456,7 +458,9 @@ void updateAux(float dt) {
 			glm::vec3 vRel = myData::negYZn*primaPaquita;
 
 			//glm::vec3 j = (-(1 + e)*vRel / ((1 / (float)Cube::mass) + glm::cross(myData::negYZn * (ourCube->inertiaMatrix * glm::cross(glm::toMat3(ourCube->mainQuat)*myData::initialCubeVerts[i] * ourCube->position, myData::negYZn)), myData::auxCubeVerts[i])));
-			glm::vec3 j = (-(1 + e)*vRel) / (1.f / (float)Cube::mass) + glm::dot<float>(myData::negYZn, glm::cross(ourCube->inertiaMatrix * glm::cross(glm::toMat3(ourCube->mainQuat)*myData::initialCubeVerts[i] + ourCube->position, myData::negYZn), ourCube->mainQuat*myData::initialCubeVerts[i] + ourCube->position));
+			//glm::vec3 j = (-(1 + e)*vRel) / (1.f / (float)Cube::mass) + glm::dot<float>(myData::negYZn, glm::cross(ourCube->inertiaMatrix * glm::cross(glm::toMat3(ourCube->mainQuat)*myData::initialCubeVerts[i] + ourCube->position, myData::negYZn), ourCube->mainQuat*myData::initialCubeVerts[i] + ourCube->position));
+			glm::vec3 j = (-(1 + e)*vRel) / (1.f / (float)Cube::mass) + glm::dot<float>(myData::negYZn, glm::cross(ourCube->inertiaMatrix * glm::cross(myData::auxCubeVerts[i] - ourCube->position, myData::negYZn), myData::auxCubeVerts[i] - ourCube->position));
+
 
 			glm::vec3 J = j * myData::negYZn;
 			glm::vec3 auxTorque = glm::cross(J, myData::auxCubeVerts[i]);
@@ -470,7 +474,8 @@ void updateAux(float dt) {
 			glm::vec3 vRel = myData::negXYn*primaPaquita;
 
 			//glm::vec3 j = (-(1 + e)*vRel / ((1 / (float)Cube::mass) + glm::cross(myData::negXYn * (ourCube->inertiaMatrix * glm::cross(glm::toMat3(ourCube->mainQuat)*myData::initialCubeVerts[i] * ourCube->position, myData::negXYn)), myData::auxCubeVerts[i])));
-			glm::vec3 j = (-(1 + e)*vRel) / (1.f / (float)Cube::mass) + glm::dot<float>(myData::negXYn, glm::cross(ourCube->inertiaMatrix * glm::cross(glm::toMat3(ourCube->mainQuat)*myData::initialCubeVerts[i] + ourCube->position, myData::negXYn), ourCube->mainQuat*myData::initialCubeVerts[i] + ourCube->position));
+			//glm::vec3 j = (-(1 + e)*vRel) / (1.f / (float)Cube::mass) + glm::dot<float>(myData::negXYn, glm::cross(ourCube->inertiaMatrix * glm::cross(glm::toMat3(ourCube->mainQuat)*myData::initialCubeVerts[i] + ourCube->position, myData::negXYn), ourCube->mainQuat*myData::initialCubeVerts[i] + ourCube->position));
+			glm::vec3 j = (-(1 + e)*vRel) / (1.f / (float)Cube::mass) + glm::dot<float>(myData::negXYn, glm::cross(ourCube->inertiaMatrix * glm::cross(myData::auxCubeVerts[i] - ourCube->position, myData::negXYn), myData::auxCubeVerts[i] - ourCube->position));
 
 
 			glm::vec3 J = j * myData::negXYn;
@@ -485,7 +490,8 @@ void updateAux(float dt) {
 			glm::vec3 vRel = myData::XYn*primaPaquita;
 
 			//glm::vec3 j = (-(1 + e)*vRel / ((1 / (float)Cube::mass) + glm::cross(myData::XYn * (ourCube->inertiaMatrix * glm::cross(glm::toMat3(ourCube->mainQuat)*myData::initialCubeVerts[i] * ourCube->position, myData::XYn)), myData::auxCubeVerts[i])));
-			glm::vec3 j = (-(1 + e)*vRel) / (1.f / (float)Cube::mass) + glm::dot<float>(myData::XYn, glm::cross(ourCube->inertiaMatrix * glm::cross(glm::toMat3(ourCube->mainQuat)*myData::initialCubeVerts[i] + ourCube->position, myData::XYn), ourCube->mainQuat*myData::initialCubeVerts[i] + ourCube->position));
+			//glm::vec3 j = (-(1 + e)*vRel) / (1.f / (float)Cube::mass) + glm::dot<float>(myData::XYn, glm::cross(ourCube->inertiaMatrix * glm::cross(glm::toMat3(ourCube->mainQuat)*myData::initialCubeVerts[i] + ourCube->position, myData::XYn), ourCube->mainQuat*myData::initialCubeVerts[i] + ourCube->position));
+			glm::vec3 j = (-(1 + e)*vRel) / (1.f / (float)Cube::mass) + glm::dot<float>(myData::XYn, glm::cross(ourCube->inertiaMatrix * glm::cross(myData::auxCubeVerts[i] - ourCube->position, myData::XYn), myData::auxCubeVerts[i] - ourCube->position));
 
 
 			glm::vec3 J = j * myData::XYn;
@@ -500,7 +506,8 @@ void updateAux(float dt) {
 			glm::vec3 vRel = myData::YZn*primaPaquita;
 
 			//glm::vec3 j = (-(1 + e)*vRel / ((1 / (float)Cube::mass) + glm::cross(myData::YZn * (ourCube->inertiaMatrix * glm::cross(glm::toMat3(ourCube->mainQuat)*myData::initialCubeVerts[i] * ourCube->position, myData::YZn)), myData::auxCubeVerts[i])));
-			glm::vec3 j = (-(1 + e)*vRel) / (1.f / (float)Cube::mass) + glm::dot<float>(myData::YZn, glm::cross(ourCube->inertiaMatrix * glm::cross(glm::toMat3(ourCube->mainQuat)*myData::initialCubeVerts[i] + ourCube->position, myData::YZn), ourCube->mainQuat*myData::initialCubeVerts[i] + ourCube->position));
+			//glm::vec3 j = (-(1 + e)*vRel) / (1.f / (float)Cube::mass) + glm::dot<float>(myData::YZn, glm::cross(ourCube->inertiaMatrix * glm::cross(glm::toMat3(ourCube->mainQuat)*myData::initialCubeVerts[i] + ourCube->position, myData::YZn), ourCube->mainQuat*myData::initialCubeVerts[i] + ourCube->position));
+			glm::vec3 j = (-(1 + e)*vRel) / (1.f / (float)Cube::mass) + glm::dot<float>(myData::YZn, glm::cross(ourCube->inertiaMatrix * glm::cross(myData::auxCubeVerts[i] - ourCube->position, myData::YZn), myData::auxCubeVerts[i] - ourCube->position));
 
 
 			glm::vec3 J = j * myData::YZn;
@@ -515,8 +522,8 @@ void updateAux(float dt) {
 			glm::vec3 vRel = myData::negXZn*primaPaquita;
 
 			//glm::vec3 j = (-(1 + e)*vRel / ((1 / (float)Cube::mass) + glm::cross(myData::negXZn * (ourCube->inertiaMatrix * glm::cross(glm::toMat3(ourCube->mainQuat)*myData::initialCubeVerts[i] * ourCube->position, myData::negXZn)), myData::auxCubeVerts[i])));
-			glm::vec3 j = (-(1 + e)*vRel) / (1.f / (float)Cube::mass) + glm::dot<float>(myData::negXZn, glm::cross(ourCube->inertiaMatrix * glm::cross(glm::toMat3(ourCube->mainQuat)*myData::initialCubeVerts[i] + ourCube->position, myData::negXZn), ourCube->mainQuat*myData::initialCubeVerts[i] + ourCube->position));
-
+			//glm::vec3 j = (-(1 + e)*vRel) / (1.f / (float)Cube::mass) + glm::dot<float>(myData::negXZn, glm::cross(ourCube->inertiaMatrix * glm::cross(glm::toMat3(ourCube->mainQuat)*myData::initialCubeVerts[i] + ourCube->position, myData::negXZn), ourCube->mainQuat*myData::initialCubeVerts[i] + ourCube->position));
+			glm::vec3 j = (-(1 + e)*vRel) / (1.f / (float)Cube::mass) + glm::dot<float>(myData::negXZn, glm::cross(ourCube->inertiaMatrix * glm::cross(myData::auxCubeVerts[i] - ourCube->position, myData::negXZn), myData::auxCubeVerts[i] - ourCube->position));
 
 			glm::vec3 J = j * myData::negXZn;
 			glm::vec3 auxTorque = glm::cross(J, myData::auxCubeVerts[i]);

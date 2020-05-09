@@ -474,9 +474,7 @@ void updateAux(float dt) {
 		//std::cout << glm::length(ourCube->mainQuat) << std::endl;
 		//std::cout << "dQuat: " << dQuat[0] << " " << dQuat[1] << " " << dQuat[2] << " " << dQuat[3] << std::endl;
 
-		//Dibujo del Cubo Y Datos
-		glm::mat4 translation = glm::translate(glm::mat4(), ourCube->position);
-		Cube::updateCube(translation * glm::toMat4(ourCube->mainQuat));
+		//updateCube?????
 
 
 		//PASO 2 calcular nueva posicion despues de colisionar
@@ -495,12 +493,18 @@ void updateAux(float dt) {
 
 		glm::vec3 vRel = myData::XZn*primaPaquita;
 
-		glm::vec3 j = (-(1 + e)*vRel / ((1 / (float)Cube::mass) + glm::cross(myData::XZn * (ourCube->inertiaMatrix * glm::cross(myData::auxCubeVerts[i], myData::XZn)), myData::auxCubeVerts[i])));
+		//glm::vec3 j = (-(1 + e)*vRel / ((1 / (float)Cube::mass) + glm::cross(myData::XZn * (ourCube->inertiaMatrix * glm::cross(myData::auxCubeVerts[i], myData::XZn)), myData::auxCubeVerts[i])));
+		glm::vec3 j = (-(1 + e)*vRel / ((1 / (float)Cube::mass) + glm::cross(myData::XZn * (ourCube->inertiaMatrix * glm::cross(glm::toMat3(ourCube->mainQuat)*myData::initialCubeVerts[i]* ourCube->position, myData::XZn)), myData::auxCubeVerts[i])));
+		
 		glm::vec3 J = j * myData::XZn;
 		glm::vec3 auxTorque = glm::cross(J, myData::auxCubeVerts[i]);
 		ourCube->angularMomentum += auxTorque;
 		ourCube->linearMomentum += J;
-		return;
+
+
+		//Dibujo del Cubo Y Datos
+		glm::mat4 translation = glm::translate(glm::mat4(), ourCube->position);
+		Cube::updateCube(translation * glm::toMat4(ourCube->mainQuat));
 	}
 
 }

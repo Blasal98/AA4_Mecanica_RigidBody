@@ -109,6 +109,10 @@ namespace Cube {
 Cube::CubeStruct *ourCube;
 Cube::CubeStruct *auxCube;
 
+float ourDt;
+float newDT;
+float nextDT;
+
 namespace myData {
 	float indiceRebote = 2;
 
@@ -430,7 +434,7 @@ void MyPhysicsInit() {
 	printSpecs();
 }
 
-float updateAux(float dt) {
+void updateAux(float dt) {
 	auxCube->linearMomentum = myData::linealReference;
 
 	auxCube->linearMomentum = ourCube->linearMomentum + dt * ourCube->totalForce;
@@ -463,14 +467,24 @@ float updateAux(float dt) {
 		glm::mat4 translation = glm::translate(glm::mat4(), ourCube->position);
 		Cube::updateCube(translation * glm::toMat4(ourCube->mainQuat));
 
-		return dt;
+
+		//PASO 2 calcular nueva posicion despues de colisionar
+		nextDT = ourDt - dt; //calculamos el tiempo que nos queda disponible
+		
+
+
+
+
+
+		return;
 	}
 
 }
 
 void MyPhysicsUpdate(float dt) {
-	float ourDt = dt;
-	float newDT;
+	ourDt = dt;
+	newDT;
+	nextDT;
 
 	//Save data for the colision
 	myData::linealReference = ourCube->linearMomentum;
@@ -499,7 +513,7 @@ void MyPhysicsUpdate(float dt) {
 
 		bool col = detectColision();
 		if (col) {
-			newDT = updateAux(dt / 2);
+			updateAux(dt / 2);
 			//system("pause");
 		}
 		else {

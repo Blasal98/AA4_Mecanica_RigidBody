@@ -160,6 +160,31 @@ namespace myData {
 		glm::vec3(halfW,  halfW, -halfW)
 	};
 
+	glm::vec3 auxCubeVerts[] = {
+		glm::vec3(-halfW, -halfW, -halfW),
+		glm::vec3(-halfW, -halfW,  halfW),
+		glm::vec3(halfW, -halfW,  halfW) ,
+		glm::vec3(halfW, -halfW, -halfW) ,
+		glm::vec3(-halfW,  halfW, -halfW),
+		glm::vec3(-halfW,  halfW,  halfW),
+		glm::vec3(halfW,  halfW,  halfW) ,
+		glm::vec3(halfW,  halfW, -halfW)
+	};
+
+	glm::vec3 auxPREcubeVerts[] = {
+		glm::vec3(-halfW, -halfW, -halfW),
+		glm::vec3(-halfW, -halfW,  halfW),
+		glm::vec3(halfW, -halfW,  halfW) ,
+		glm::vec3(halfW, -halfW, -halfW) ,
+		glm::vec3(-halfW,  halfW, -halfW),
+		glm::vec3(-halfW,  halfW,  halfW),
+		glm::vec3(halfW,  halfW,  halfW) ,
+		glm::vec3(halfW,  halfW, -halfW)
+	};
+
+	glm::vec3 linealReference;
+	glm::vec3 positionReference;
+
 
 	/*
 	//Els 2 serien el costat del cub/2
@@ -211,6 +236,8 @@ namespace myData {
 	}
 
 }
+
+
 bool detectColision() {
 
 	
@@ -221,7 +248,6 @@ bool detectColision() {
 			//myData::PREcubeVerts[i] += ourCube->position;
 			
 		}
-
 
 
 		for (int i = 0; i < 8; i++) {
@@ -388,24 +414,40 @@ void MyPhysicsInit() {
 	renderCube = true; //activem cub
 	Cube::setupCube(); //el setejem
 	ourCube = new Cube::CubeStruct(); //el creem
+	auxCube = new Cube::CubeStruct(); 
 	
 	glm::mat4 translation = glm::translate(glm::mat4(), ourCube->position);
 	glm::mat4 scale = glm::scale(glm::mat4(), Cube::scale);
 	
 	//Cube::updateCube(translation * glm::toMat4(ourCube->mainQuat)/* * scale*/);
 	ourCube->lastPosition = ourCube->position;
+	
 	for (int i = 0; i < 8; i++) {
 		myData::cubeVerts[i] += ourCube->position;
-		
+		myData::auxCubeVerts[i] += ourCube->position;
 	}
 
 	printSpecs();
 }
 
+void updateAux(float dt) {
+	auxCube->linearMomentum = myData::linealReference;
 
+	auxCube->linearMomentum = ourCube->linearMomentum + dt * ourCube->totalForce;
+	auxCube->velocity = auxCube->linearMomentum / (float)Cube::mass;
+
+	auxCube->lastPosition = auxCube->position;//esto igual se quita
+	auxCube->position = ourCube->position + dt * auxCube->velocity;
+
+}
 
 void MyPhysicsUpdate(float dt) {
 	float ourDt = dt;
+
+	//Save data for the colision
+	myData::linealReference = ourCube->linearMomentum;
+	auxCube->velocity = ourCube->velocity;
+
 
 	if (renderCube) {
 
@@ -429,9 +471,9 @@ void MyPhysicsUpdate(float dt) {
 
 		bool col = detectColision();
 		if (col) {
-			
-			system("pause");
+			updateAux(dt);
 		}
+
 		ourCube->inertiaMatrix = glm::toMat3(ourCube->mainQuat) * glm::inverse(ourCube->inertiaBody) * glm::transpose(glm::toMat3(ourCube->mainQuat));
 		ourCube->angularVelocity = ourCube->inertiaMatrix * ourCube->angularMomentum;
 		

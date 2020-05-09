@@ -189,6 +189,7 @@ namespace myData {
 	glm::vec3 linealReference;
 	glm::vec3 positionReference;
 	bool *vColision;
+	int whichPlane = 0;
 
 	/*
 	//Els 2 serien el costat del cub/2
@@ -259,6 +260,7 @@ bool detectColision() {
 			if (((glm::dot(myData::XZn, myData::auxPREcubeVerts[i]) + myData::planeD(myData::XZn, myData::aux))*(glm::dot(myData::XZn, myData::auxCubeVerts[i]) + myData::planeD(myData::XZn, myData::aux))) <= 0) {
 				std::cout << "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-->colision GROUND-" << std::endl;
 				myData::vColision[i] = true;
+				myData::whichPlane = 1;
 				return true;
 			}
 			
@@ -266,6 +268,7 @@ bool detectColision() {
 			if (((glm::dot(myData::negYZn, myData::auxPREcubeVerts[i]) + myData::planeD(myData::negYZn, myData::aux3))*(glm::dot(myData::negYZn, myData::auxCubeVerts[i]) + myData::planeD(myData::negYZn, myData::aux3))) <= 0) {
 				std::cout << "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-->colision RIGHT-" << std::endl;
 				myData::vColision[i] = true;
+				myData::whichPlane = 2;
 				return true;
 			}
 
@@ -273,6 +276,7 @@ bool detectColision() {
 			if (((glm::dot(myData::negXYn, myData::auxPREcubeVerts[i]) + myData::planeD(myData::negXYn, myData::aux3))*(glm::dot(myData::negXYn, myData::auxCubeVerts[i]) + myData::planeD(myData::negXYn, myData::aux3))) <= 0) {
 				std::cout << "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-->colision FRONT-" << std::endl;
 				myData::vColision[i] = true;
+				myData::whichPlane = 3;
 				return true;
 			}
 
@@ -280,6 +284,7 @@ bool detectColision() {
 			if (((glm::dot(myData::XYn, myData::auxPREcubeVerts[i]) + myData::planeD(myData::XYn, myData::aux2))*(glm::dot(myData::XYn, myData::auxCubeVerts[i]) + myData::planeD(myData::XYn, myData::aux2))) <= 0) {
 				std::cout << "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-->colision BACK-" << std::endl;
 				myData::vColision[i] = true;
+				myData::whichPlane = 4;
 				return true;
 			}
 
@@ -287,6 +292,7 @@ bool detectColision() {
 			if (((glm::dot(myData::YZn, myData::auxPREcubeVerts[i]) + myData::planeD(myData::YZn, myData::aux2))*(glm::dot(myData::YZn, myData::auxCubeVerts[i]) + myData::planeD(myData::YZn, myData::aux2))) <= 0) {
 				std::cout << "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-->colision LEFT-" << std::endl;
 				myData::vColision[i] = true;
+				myData::whichPlane = 5;
 				return true;	
 			}
 			
@@ -294,78 +300,12 @@ bool detectColision() {
 			if (((glm::dot(myData::negXZn, myData::auxPREcubeVerts[i]) + myData::planeD(myData::negXZn, myData::aux4))*(glm::dot(myData::negXZn, myData::auxCubeVerts[i]) + myData::planeD(myData::negXZn, myData::aux4))) <= 0) {
 				std::cout << "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-->colision ROOF-" << std::endl;
 				myData::vColision[i] = true;
+				myData::whichPlane = 6;
 				return true;
 			}
-			
-
-
-
-
-
-
-			/*if (myData::cubeVerts[i].y <= 0) {
-				
-				std::cout << "-colision-" << std::endl;
-				return true;
-				//system("pause");
-			}*/
-
-
-			/*if (ourCube->position.y <= 0) {
-				std::cout << "colision" << std::endl;
-				system("pause");
-			}*/
-
-
-			
-			/*float colisionIndex = myData::checkPointOnPlaneGroundFD(myData::XZn, myData::aux, myData::cubeVerts[i]);
-			if (colisionIndex < 0.085 && colisionIndex > -0.085) {
-				std::cout << "colision" << std::endl;
-				system("pause");
-			}*/
-
-			/*float colisionIndex = myData::checkPointOnPlaneGround(myData::cubeVerts[i]);
-			if (colisionIndex) {
-				std::cout << "colision" << std::endl;
-				system("pause");
-			}*/
 
 		}
 	}
-
-	/*
-	myData::aux111 = glm::toMat3(ourCube->mainQuat) * myData::aux111 + ourCube->position;
-	myData::aux112 = glm::toMat3(ourCube->mainQuat) * myData::aux112 + ourCube->position;
-	myData::aux122 = glm::toMat3(ourCube->mainQuat) * myData::aux122 + ourCube->position;
-	myData::aux121 = glm::toMat3(ourCube->mainQuat) * myData::aux121 + ourCube->position;
-	myData::aux211 = glm::toMat3(ourCube->mainQuat) * myData::aux211 + ourCube->position;
-	myData::aux212 = glm::toMat3(ourCube->mainQuat) * myData::aux212 + ourCube->position;
-	myData::aux221 = glm::toMat3(ourCube->mainQuat) * myData::aux221 + ourCube->position;
-	myData::aux222 = glm::toMat3(ourCube->mainQuat) * myData::aux222 + ourCube->position;
-	
-	if (myData::aux111.y < -5) {
-		std::cout << "colision" << std::endl;
-			system("pause");
-	}
-	*/
-	/*if (((glm::dot(myData::XZn, aux111) + myData::planeD(myData::XZn, myData::aux))*(glm::dot(myData::XZn, aux111) + myData::planeD(myData::XZn, myData::aux))) <= 0) {
-		Sleep(500);
-
-	}*/
-	/*if (
-		myData::checkPointOnPlaneGround(myData::cubeVerts[0])
-		
-		) {
-		Sleep(500);
-	}*/
-	
-
-
-	/*if (((glm::dot(extraData::XZn, MyPS.positionI[i]) + extraData::planeD(extraData::XZn, extraData::aux))*(glm::dot(extraData::XZn, MyPS.positionF[i]) + extraData::planeD(extraData::XZn, extraData::aux))) <= 0) {
-
-		MyPS.positionF[i] = MyPS.positionF[i] - 2 * (glm::dot(extraData::XZn, MyPS.positionF[i]) + extraData::planeD(extraData::XZn, extraData::aux))*extraData::XZn;
-		MyPS.velF[i] = MyPS.velF[i] - 2 * (glm::dot(extraData::XZn, MyPS.velF[i]))*extraData::XZn;
-	}*/
 	
 
 	return false;
@@ -489,17 +429,87 @@ void updateAux(float dt) {
 			i++;
 		}
 		float e = 1.f;
-		glm::vec3 primaPaquita = ourCube->velocity + glm::cross(ourCube->angularVelocity, (myData::auxCubeVerts[i] - ourCube->position));
 
-		glm::vec3 vRel = myData::XZn*primaPaquita;
 
-		//glm::vec3 j = (-(1 + e)*vRel / ((1 / (float)Cube::mass) + glm::cross(myData::XZn * (ourCube->inertiaMatrix * glm::cross(myData::auxCubeVerts[i], myData::XZn)), myData::auxCubeVerts[i])));
-		glm::vec3 j = (-(1 + e)*vRel / ((1 / (float)Cube::mass) + glm::cross(myData::XZn * (ourCube->inertiaMatrix * glm::cross(glm::toMat3(ourCube->mainQuat)*myData::initialCubeVerts[i]* ourCube->position, myData::XZn)), myData::auxCubeVerts[i])));
-		
-		glm::vec3 J = j * myData::XZn;
-		glm::vec3 auxTorque = glm::cross(J, myData::auxCubeVerts[i]);
-		ourCube->angularMomentum += auxTorque;
-		ourCube->linearMomentum += J;
+		if (myData::whichPlane == 1) {//GROUND
+			glm::vec3 primaPaquita = ourCube->velocity + glm::cross(ourCube->angularVelocity, (myData::auxCubeVerts[i] - ourCube->position));
+
+			glm::vec3 vRel = myData::XZn*primaPaquita;
+
+			//glm::vec3 j = (-(1 + e)*vRel / ((1 / (float)Cube::mass) + glm::cross(myData::XZn * (ourCube->inertiaMatrix * glm::cross(myData::auxCubeVerts[i], myData::XZn)), myData::auxCubeVerts[i])));
+			glm::vec3 j = (-(1 + e)*vRel / ((1 / (float)Cube::mass) + glm::cross(myData::XZn * (ourCube->inertiaMatrix * glm::cross(glm::toMat3(ourCube->mainQuat)*myData::initialCubeVerts[i] * ourCube->position, myData::XZn)), myData::auxCubeVerts[i])));
+
+			glm::vec3 J = j * myData::XZn;
+			glm::vec3 auxTorque = glm::cross(J, myData::auxCubeVerts[i]);
+			ourCube->angularMomentum += auxTorque;
+			ourCube->linearMomentum += J;
+		}
+
+		if (myData::whichPlane == 2) {//DERECHA
+			glm::vec3 primaPaquita = ourCube->velocity + glm::cross(ourCube->angularVelocity, (myData::auxCubeVerts[i] - ourCube->position));
+
+			glm::vec3 vRel = myData::negYZn*primaPaquita;
+
+			glm::vec3 j = (-(1 + e)*vRel / ((1 / (float)Cube::mass) + glm::cross(myData::negYZn * (ourCube->inertiaMatrix * glm::cross(glm::toMat3(ourCube->mainQuat)*myData::initialCubeVerts[i] * ourCube->position, myData::negYZn)), myData::auxCubeVerts[i])));
+
+			glm::vec3 J = j * myData::negYZn;
+			glm::vec3 auxTorque = glm::cross(J, myData::auxCubeVerts[i]);
+			ourCube->angularMomentum += auxTorque;
+			ourCube->linearMomentum += J;
+		}
+
+		if (myData::whichPlane == 3) {//DELANTE
+			glm::vec3 primaPaquita = ourCube->velocity + glm::cross(ourCube->angularVelocity, (myData::auxCubeVerts[i] - ourCube->position));
+
+			glm::vec3 vRel = myData::negXYn*primaPaquita;
+
+			glm::vec3 j = (-(1 + e)*vRel / ((1 / (float)Cube::mass) + glm::cross(myData::negXYn * (ourCube->inertiaMatrix * glm::cross(glm::toMat3(ourCube->mainQuat)*myData::initialCubeVerts[i] * ourCube->position, myData::negXYn)), myData::auxCubeVerts[i])));
+
+			glm::vec3 J = j * myData::negXYn;
+			glm::vec3 auxTorque = glm::cross(J, myData::auxCubeVerts[i]);
+			ourCube->angularMomentum += auxTorque;
+			ourCube->linearMomentum += J;
+		}
+
+		if (myData::whichPlane == 4) {//DETRAS
+			glm::vec3 primaPaquita = ourCube->velocity + glm::cross(ourCube->angularVelocity, (myData::auxCubeVerts[i] - ourCube->position));
+
+			glm::vec3 vRel = myData::XYn*primaPaquita;
+
+			glm::vec3 j = (-(1 + e)*vRel / ((1 / (float)Cube::mass) + glm::cross(myData::XYn * (ourCube->inertiaMatrix * glm::cross(glm::toMat3(ourCube->mainQuat)*myData::initialCubeVerts[i] * ourCube->position, myData::XYn)), myData::auxCubeVerts[i])));
+
+			glm::vec3 J = j * myData::XYn;
+			glm::vec3 auxTorque = glm::cross(J, myData::auxCubeVerts[i]);
+			ourCube->angularMomentum += auxTorque;
+			ourCube->linearMomentum += J;
+		}
+
+		if (myData::whichPlane == 5) {//IZQUIERDA
+			glm::vec3 primaPaquita = ourCube->velocity + glm::cross(ourCube->angularVelocity, (myData::auxCubeVerts[i] - ourCube->position));
+
+			glm::vec3 vRel = myData::YZn*primaPaquita;
+
+			glm::vec3 j = (-(1 + e)*vRel / ((1 / (float)Cube::mass) + glm::cross(myData::YZn * (ourCube->inertiaMatrix * glm::cross(glm::toMat3(ourCube->mainQuat)*myData::initialCubeVerts[i] * ourCube->position, myData::YZn)), myData::auxCubeVerts[i])));
+
+			glm::vec3 J = j * myData::YZn;
+			glm::vec3 auxTorque = glm::cross(J, myData::auxCubeVerts[i]);
+			ourCube->angularMomentum += auxTorque;
+			ourCube->linearMomentum += J;
+		}
+
+		if (myData::whichPlane == 6) {//ARRIBA
+			glm::vec3 primaPaquita = ourCube->velocity + glm::cross(ourCube->angularVelocity, (myData::auxCubeVerts[i] - ourCube->position));
+
+			glm::vec3 vRel = myData::negXZn*primaPaquita;
+
+			glm::vec3 j = (-(1 + e)*vRel / ((1 / (float)Cube::mass) + glm::cross(myData::negXZn * (ourCube->inertiaMatrix * glm::cross(glm::toMat3(ourCube->mainQuat)*myData::initialCubeVerts[i] * ourCube->position, myData::negXZn)), myData::auxCubeVerts[i])));
+
+			glm::vec3 J = j * myData::negXZn;
+			glm::vec3 auxTorque = glm::cross(J, myData::auxCubeVerts[i]);
+			ourCube->angularMomentum += auxTorque;
+			ourCube->linearMomentum += J;
+		}
+	
 
 
 		//Dibujo del Cubo Y Datos

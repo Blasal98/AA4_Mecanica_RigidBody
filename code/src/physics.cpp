@@ -257,42 +257,42 @@ bool detectColision() {
 		for (int i = 0; i < 8; i++) {
 			//                              inicial                                                                                    final
 			if (((glm::dot(myData::XZn, myData::auxPREcubeVerts[i]) + myData::planeD(myData::XZn, myData::aux))*(glm::dot(myData::XZn, myData::auxCubeVerts[i]) + myData::planeD(myData::XZn, myData::aux))) <= 0) {
-				std::cout << "-colision GROUND-" << std::endl;
+				std::cout << "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-->colision GROUND-" << std::endl;
 				myData::vColision[i] = true;
 				return true;
 			}
 			
 			//plano derecha
 			if (((glm::dot(myData::negYZn, myData::auxPREcubeVerts[i]) + myData::planeD(myData::negYZn, myData::aux3))*(glm::dot(myData::negYZn, myData::auxCubeVerts[i]) + myData::planeD(myData::negYZn, myData::aux3))) <= 0) {
-				std::cout << "-colision RIGHT-" << std::endl;
+				std::cout << "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-->colision RIGHT-" << std::endl;
 				myData::vColision[i] = true;
 				return true;
 			}
 
 			//plano delante
 			if (((glm::dot(myData::negXYn, myData::auxPREcubeVerts[i]) + myData::planeD(myData::negXYn, myData::aux3))*(glm::dot(myData::negXYn, myData::auxCubeVerts[i]) + myData::planeD(myData::negXYn, myData::aux3))) <= 0) {
-				std::cout << "-colision FRONT-" << std::endl;
+				std::cout << "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-->colision FRONT-" << std::endl;
 				myData::vColision[i] = true;
 				return true;
 			}
 
 			//plano detras
 			if (((glm::dot(myData::XYn, myData::auxPREcubeVerts[i]) + myData::planeD(myData::XYn, myData::aux2))*(glm::dot(myData::XYn, myData::auxCubeVerts[i]) + myData::planeD(myData::XYn, myData::aux2))) <= 0) {
-				std::cout << "-colision BACK-" << std::endl;
+				std::cout << "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-->colision BACK-" << std::endl;
 				myData::vColision[i] = true;
 				return true;
 			}
 
 			//plano izquierda
 			if (((glm::dot(myData::YZn, myData::auxPREcubeVerts[i]) + myData::planeD(myData::YZn, myData::aux2))*(glm::dot(myData::YZn, myData::auxCubeVerts[i]) + myData::planeD(myData::YZn, myData::aux2))) <= 0) {
-				std::cout << "-colision LEFT-" << std::endl;
+				std::cout << "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-->colision LEFT-" << std::endl;
 				myData::vColision[i] = true;
 				return true;	
 			}
 			
 			//plano arriba
 			if (((glm::dot(myData::negXZn, myData::auxPREcubeVerts[i]) + myData::planeD(myData::negXZn, myData::aux4))*(glm::dot(myData::negXZn, myData::auxCubeVerts[i]) + myData::planeD(myData::negXZn, myData::aux4))) <= 0) {
-				std::cout << "-colision ROOF-" << std::endl;
+				std::cout << "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-->colision ROOF-" << std::endl;
 				myData::vColision[i] = true;
 				return true;
 			}
@@ -408,11 +408,15 @@ void printSpecs() {
 		}
 		std::cout << "MainQuat: " << ourCube->mainQuat[0] << " " << ourCube->mainQuat[1] << " " << ourCube->mainQuat[2] << " " << ourCube->mainQuat[3] << std::endl;
 		//std::cout << "AuxQuat: " << ourCube->auxQuat[0] << " " << ourCube->auxQuat[1] << " " << ourCube->auxQuat[2] << " " << ourCube->auxQuat[3] << std::endl;
+		std::cout << std::endl;
+		std::cout << "Linear Momentum(J): " << "(" << ourCube->linearMomentum.x << "/" << ourCube->linearMomentum.y << "/" << ourCube->linearMomentum.z << ")" << std::endl;
+		std::cout << "Angular Momentum(auxTorque): " << "(" << ourCube->angularMomentum.x << "/" << ourCube->angularMomentum.y << "/" << ourCube->angularMomentum.z << ")" << std::endl;
 		std::cout << "MassCenter POSITION: ";
 		std::cout << "(" << ourCube->position.x << "/" << ourCube->position.y << "/" << ourCube->position.z << ")" << std::endl;
+		std::cout << std::endl;
 		std::cout << "VERTEX POSITIONS: " << std::endl;
 		for (int i = 0; i < 8; i++) {
-			std::cout << "(" << myData::cubeVerts[i].x << "/" << myData::cubeVerts[i].y << "/" << myData::cubeVerts[i].z << ")" << std::endl;
+			std::cout << "(" << myData::auxCubeVerts[i].x << "/" << myData::auxCubeVerts[i].y << "/" << myData::auxCubeVerts[i].z << ")" << std::endl;
 		}
 		std::cout << "--------------------------------------------------------------------" << std::endl;
 	}
@@ -486,7 +490,7 @@ void updateAux(float dt) {
 			}
 			i++;
 		}
-		float e = 0.3f;
+		float e = 1.f;
 		glm::vec3 primaPaquita = ourCube->velocity + glm::cross(ourCube->angularVelocity, (myData::auxCubeVerts[i] - ourCube->position));
 
 		glm::vec3 vRel = myData::XZn*primaPaquita;

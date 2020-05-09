@@ -188,7 +188,7 @@ namespace myData {
 
 	glm::vec3 linealReference;
 	glm::vec3 positionReference;
-
+	bool *vColision;
 
 	/*
 	//Els 2 serien el costat del cub/2
@@ -258,36 +258,42 @@ bool detectColision() {
 			//                              inicial                                                                                    final
 			if (((glm::dot(myData::XZn, myData::auxPREcubeVerts[i]) + myData::planeD(myData::XZn, myData::aux))*(glm::dot(myData::XZn, myData::auxCubeVerts[i]) + myData::planeD(myData::XZn, myData::aux))) <= 0) {
 				std::cout << "-colision GROUND-" << std::endl;
+				myData::vColision[i] = true;
 				return true;
 			}
 			
 			//plano derecha
 			if (((glm::dot(myData::negYZn, myData::auxPREcubeVerts[i]) + myData::planeD(myData::negYZn, myData::aux3))*(glm::dot(myData::negYZn, myData::auxCubeVerts[i]) + myData::planeD(myData::negYZn, myData::aux3))) <= 0) {
 				std::cout << "-colision RIGHT-" << std::endl;
+				myData::vColision[i] = true;
 				return true;
 			}
 
 			//plano delante
 			if (((glm::dot(myData::negXYn, myData::auxPREcubeVerts[i]) + myData::planeD(myData::negXYn, myData::aux3))*(glm::dot(myData::negXYn, myData::auxCubeVerts[i]) + myData::planeD(myData::negXYn, myData::aux3))) <= 0) {
 				std::cout << "-colision FRONT-" << std::endl;
+				myData::vColision[i] = true;
 				return true;
 			}
 
 			//plano detras
 			if (((glm::dot(myData::XYn, myData::auxPREcubeVerts[i]) + myData::planeD(myData::XYn, myData::aux2))*(glm::dot(myData::XYn, myData::auxCubeVerts[i]) + myData::planeD(myData::XYn, myData::aux2))) <= 0) {
 				std::cout << "-colision BACK-" << std::endl;
+				myData::vColision[i] = true;
 				return true;
 			}
 
 			//plano izquierda
 			if (((glm::dot(myData::YZn, myData::auxPREcubeVerts[i]) + myData::planeD(myData::YZn, myData::aux2))*(glm::dot(myData::YZn, myData::auxCubeVerts[i]) + myData::planeD(myData::YZn, myData::aux2))) <= 0) {
 				std::cout << "-colision LEFT-" << std::endl;
+				myData::vColision[i] = true;
 				return true;	
 			}
 			
 			//plano arriba
 			if (((glm::dot(myData::negXZn, myData::auxPREcubeVerts[i]) + myData::planeD(myData::negXZn, myData::aux4))*(glm::dot(myData::negXZn, myData::auxCubeVerts[i]) + myData::planeD(myData::negXZn, myData::aux4))) <= 0) {
 				std::cout << "-colision ROOF-" << std::endl;
+				myData::vColision[i] = true;
 				return true;
 			}
 			
@@ -425,12 +431,13 @@ void MyPhysicsInit() {
 	
 	//Cube::updateCube(translation * glm::toMat4(ourCube->mainQuat)/* * scale*/);
 	ourCube->lastPosition = ourCube->position;
+	myData::vColision = new bool[8];
 	
 	for (int i = 0; i < 8; i++) {
 		myData::cubeVerts[i] += ourCube->position;
 		myData::auxCubeVerts[i] += ourCube->position;
+		myData::vColision[i] = false;
 	}
-
 	printSpecs();
 }
 
@@ -444,7 +451,7 @@ void updateAux(float dt) {
 	auxCube->position = ourCube->position + dt * auxCube->velocity;
 
 	if (detectColision()) {
-		updateAux(dt / 2);
+		updateAux(dt / 2.f);
 	}
 	else {
 		//setear los nuevos datos que hemos calculado en el cubo bueno para sacar lo demas
@@ -470,10 +477,19 @@ void updateAux(float dt) {
 
 		//PASO 2 calcular nueva posicion despues de colisionar
 		nextDT = ourDt - dt; //calculamos el tiempo que nos queda disponible
+
+		int i = 0;
+		bool out = false;
+		while (i < 8 || out) {
+			if (myData::vColision[i]) {
+				out = false;
+			}
+			i++;
+		}
 		
+		glm::vec3 primaPaquita = ourCube->velocity + glm::cross(ourCube->angularVelocity, (myData::auxCubeVerts[i] - ourCube->position));
 
-
-
+		glm::vec3 vRel = myData::XZn*primaPaquita;
 
 
 		return;
@@ -489,7 +505,7 @@ void MyPhysicsUpdate(float dt) {
 	//Save data for the colision
 	myData::linealReference = ourCube->linearMomentum;
 	auxCube->velocity = ourCube->velocity;
-
+	auxCube->position = ourCube->position;
 
 	if (renderCube) {
 
@@ -513,7 +529,7 @@ void MyPhysicsUpdate(float dt) {
 
 		bool col = detectColision();
 		if (col) {
-			updateAux(dt / 2);
+			updateAux(dt / 2.f);
 			//system("pause");
 		}
 		else {

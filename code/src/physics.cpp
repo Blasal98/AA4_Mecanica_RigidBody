@@ -486,12 +486,16 @@ void updateAux(float dt) {
 			}
 			i++;
 		}
-		
+		float e = 0.3f;
 		glm::vec3 primaPaquita = ourCube->velocity + glm::cross(ourCube->angularVelocity, (myData::auxCubeVerts[i] - ourCube->position));
 
 		glm::vec3 vRel = myData::XZn*primaPaquita;
 
-
+		glm::vec3 j = (-(1 + e)*vRel / ((1 / (float)Cube::mass) + glm::cross(myData::XZn * (ourCube->inertiaMatrix * glm::cross(myData::auxCubeVerts[i], myData::XZn)), myData::auxCubeVerts[i])));
+		glm::vec3 J = j * myData::XZn;
+		glm::vec3 auxTorque = glm::cross(J, myData::auxCubeVerts[i]);
+		ourCube->angularMomentum += auxTorque;
+		ourCube->linearMomentum += J;
 		return;
 	}
 

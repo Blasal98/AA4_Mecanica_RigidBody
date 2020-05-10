@@ -85,6 +85,8 @@ namespace Cube {
 		std::vector<glm::vec3> vertexsLast;
 		std::vector<glm::vec3> vertexsLocal;
 
+		float elasticity = 1;
+
 		//bool colliding;
 
 		//bool wasCollision;
@@ -95,25 +97,66 @@ namespace Cube {
 			}
 		}
 		void detectCollisions(float dt) {
-			bool detectionDone = false;
+			std::cout << "Frame | " << std::endl;
 
-			//glm::vec3 colVertex;
-			//glm::vec3 lastPosColVertex;
+			bool detectionDone = false;
 			int auxIndex;
 
 			for (int i = 0; i < 8; i++) {
 				if (vertexs[i].y < 0) {
 					if (!detectionDone) {
 						detectionDone = true;
-						//colVertex = vertexs[i];
-						//lastPosColVertex = vertexsLast[i];
 						auxIndex = i;
 					}
 				}
 			}
 			if (detectionDone && collisionONOFF) {
 				if (collisionHARDCODED) {
-				
+					std::cout << "COL" ;
+					glm::vec3 normal = glm::vec3(0, 1, 0);
+					glm::vec3 impulse = glm::reflect(lastVelocity, normal) * elasticity;
+					float wSpeed = glm::length(lastAngularVelocity);
+					float vSpeed = glm::length(lastVelocity);
+
+					linearMomentum = glm::vec3(0, 0, 0);
+					angularMomentum = glm::vec3(0, 0, 0);
+					mainQuat = lastQuat;
+					position = lastPosition;
+					//velocity = lastVelocity;
+					//angularVelocity = lastAngularVelocity;
+					vertexs = vertexsLast;
+
+					totalForce = glm::vec3(0, 0, 0);
+					torque = glm::vec3(0, 0, 0);
+					//forces.push_back(ForceOnPoint(gravity, position));
+					forces.push_back(ForceOnPoint(impulse, vertexs[auxIndex]));
+
+					for (int i = 0; i < forces.size(); i++) {
+						totalForce += forces.at(i).force;
+						torque += glm::cross(forces.at(i).point - position, forces.at(i).force);
+					}
+					forces.clear();
+
+					linearMomentum +=  totalForce;
+					angularMomentum +=  torque * dt;
+
+					velocity = linearMomentum / (float)mass;
+					velocity = glm::normalize(velocity) * vSpeed;
+					position += dt * velocity;
+
+					inertiaMatrix = glm::toMat3(mainQuat) * glm::inverse(inertiaBody) * glm::transpose(glm::toMat3(mainQuat));
+					angularVelocity = inertiaMatrix * angularMomentum;
+					//angularVelocity = glm::normalize(angularVelocity) /** wSpeed*/;
+
+					//Rotacio
+					glm::quat auxAngVel = glm::quat(0, angularVelocity);
+					glm::quat dQuat = (1.f / 2.f) * auxAngVel * mainQuat;
+					mainQuat = glm::normalize(mainQuat + dt * dQuat);
+					//std::cout << glm::length(mainQuat) << std::endl;
+					//std::cout << "dQuat: " << dQuat[0] << " " << dQuat[1] << " " << dQuat[2] << " " << dQuat[3] << std::endl;
+
+					//colisions
+					updateVertexs();
 				}
 				else {
 					totalForce = glm::vec3(0, 0, 0);

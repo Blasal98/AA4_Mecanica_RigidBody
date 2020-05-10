@@ -15,9 +15,141 @@ extern void Exemple_PhysicsUpdate(float dt);
 extern void Exemple_PhysicsCleanup();
 
 bool show_test_window = false;
-
+extern const float halfW = 0.5f;
 
 extern bool renderCube;
+bool detectionDone = false;
+
+
+namespace myData {
+	float indiceRebote = 2;
+
+	//planos
+	glm::vec3 XYn = glm::vec3(0, 0, 1);//normal de plano XY es Z
+	glm::vec3 YZn = glm::vec3(1, 0, 0);
+	glm::vec3 XZn = glm::vec3(0, 1, 0);
+	glm::vec3 negYZn = glm::vec3(-1, 0, 0);
+	glm::vec3 negXYn = glm::vec3(0, 0, -1);
+	glm::vec3 negXZn = glm::vec3(0, -1, 0);
+
+	glm::vec3 aux = glm::vec3(-5, 0, -5);
+	glm::vec3 aux2 = glm::vec3(-5, 0, 5);
+	glm::vec3 aux3 = glm::vec3(5, 0, -5);
+	glm::vec3 aux4 = glm::vec3(-5, 10, -5);
+	glm::vec3 vX1 = aux - aux2;
+	glm::vec3 vX2 = aux - aux3;
+
+	glm::vec3 cubeVerts[] = {
+		glm::vec3(-halfW, -halfW, -halfW),
+		glm::vec3(-halfW, -halfW,  halfW),
+		glm::vec3(halfW, -halfW,  halfW) ,
+		glm::vec3(halfW, -halfW, -halfW) ,
+		glm::vec3(-halfW,  halfW, -halfW),
+		glm::vec3(-halfW,  halfW,  halfW),
+		glm::vec3(halfW,  halfW,  halfW) ,
+		glm::vec3(halfW,  halfW, -halfW)
+	};
+
+	glm::vec3 PREcubeVerts[] = {
+		glm::vec3(-halfW, -halfW, -halfW),
+		glm::vec3(-halfW, -halfW,  halfW),
+		glm::vec3(halfW, -halfW,  halfW) ,
+		glm::vec3(halfW, -halfW, -halfW) ,
+		glm::vec3(-halfW,  halfW, -halfW),
+		glm::vec3(-halfW,  halfW,  halfW),
+		glm::vec3(halfW,  halfW,  halfW) ,
+		glm::vec3(halfW,  halfW, -halfW)
+	};
+
+	glm::vec3 initialCubeVerts[] = {
+		glm::vec3(-halfW, -halfW, -halfW),
+		glm::vec3(-halfW, -halfW,  halfW),
+		glm::vec3(halfW, -halfW,  halfW) ,
+		glm::vec3(halfW, -halfW, -halfW) ,
+		glm::vec3(-halfW,  halfW, -halfW),
+		glm::vec3(-halfW,  halfW,  halfW),
+		glm::vec3(halfW,  halfW,  halfW) ,
+		glm::vec3(halfW,  halfW, -halfW)
+	};
+
+	glm::vec3 auxCubeVerts[] = {
+		glm::vec3(-halfW, -halfW, -halfW),
+		glm::vec3(-halfW, -halfW,  halfW),
+		glm::vec3(halfW, -halfW,  halfW) ,
+		glm::vec3(halfW, -halfW, -halfW) ,
+		glm::vec3(-halfW,  halfW, -halfW),
+		glm::vec3(-halfW,  halfW,  halfW),
+		glm::vec3(halfW,  halfW,  halfW) ,
+		glm::vec3(halfW,  halfW, -halfW)
+	};
+
+	glm::vec3 auxPREcubeVerts[] = {
+		glm::vec3(-halfW, -halfW, -halfW),
+		glm::vec3(-halfW, -halfW,  halfW),
+		glm::vec3(halfW, -halfW,  halfW) ,
+		glm::vec3(halfW, -halfW, -halfW) ,
+		glm::vec3(-halfW,  halfW, -halfW),
+		glm::vec3(-halfW,  halfW,  halfW),
+		glm::vec3(halfW,  halfW,  halfW) ,
+		glm::vec3(halfW,  halfW, -halfW)
+	};
+
+	glm::vec3 linealReference;
+	glm::vec3 positionReference;
+	bool *vColision;
+	int whichPlane = 0;
+
+	/*
+	//Els 2 serien el costat del cub/2
+	float cubeSize = 0.5f;
+	//Vertices del cubo
+	// 1 1 1 es derecha abajo delante
+	// x y z
+	glm::vec3 aux111 = ourCube->position + glm::vec3(cubeSize, -cubeSize, -cubeSize); //derecha abajo delante
+	glm::vec3 aux112 = ourCube->position + glm::vec3(cubeSize, -cubeSize, cubeSize); //derecha abajo detras
+	glm::vec3 aux122 = ourCube->position + glm::vec3(cubeSize, cubeSize, cubeSize); //derecha arriba detras
+	glm::vec3 aux121 = ourCube->position + glm::vec3(cubeSize, cubeSize, -cubeSize); //derecha arriba delante
+	glm::vec3 aux211 = ourCube->position + glm::vec3(-cubeSize, -cubeSize, -cubeSize); //izquierda abajo delante
+	glm::vec3 aux212 = ourCube->position + glm::vec3(-cubeSize, -cubeSize, cubeSize); //izquierda abajo detras
+	glm::vec3 aux221 = ourCube->position + glm::vec3(-cubeSize, cubeSize, -cubeSize); //izquierda arriba delante
+	glm::vec3 aux222 = ourCube->position + glm::vec3(-cubeSize, cubeSize, cubeSize); //izquierda arriba detras
+	*/
+
+	bool colisions = true;
+
+	float planeD(glm::vec3 normal, glm::vec3 point) {
+		return -(normal.x*point.x + normal.y*point.y + normal.z*point.z);
+	}
+
+	/*bool checkPointOnPlane(glm::vec3 normal, glm::vec3 pointPlane, glm::vec3 pointCheck) {
+		return ((normal.x*pointCheck.x) + (normal.y*pointCheck.y) + (normal.z*pointCheck.z) + planeD(normal, pointPlane)) == 0;
+	}*/
+	/*bool checkPointOnPlane(glm::vec3 normal, glm::vec3 pointPlane, glm::vec3 pointCheck) {
+		return ((normal.x*pointCheck.x) + (normal.y*pointCheck.y) + (normal.z*pointCheck.z) + planeD(normal, pointCheck)) == 0;
+	}*/
+	bool checkPointOnPlaneGround(glm::vec3 pointCheck) {
+		//eq del plano suelo: x + 5 = 0
+		return (pointCheck.x + 5) == 0;
+	}
+	bool checkPointOnPlaneGround(glm::vec3 normal, glm::vec3 pointPlane, glm::vec3 pointCheck) {
+		//eq del plano suelo: x + 5 = 0
+		return (pointCheck.x + 5) + planeD(normal, pointPlane) == 0;
+	}
+	float checkPointOnPlaneGroundFD(glm::vec3 normal, glm::vec3 pointPlane, glm::vec3 pointCheck) {
+		//eq del plano suelo: x + 5 = 0
+		return (pointCheck.x + 5) + planeD(normal, pointPlane);
+	}
+	float checkPointOnPlaneGroundF(glm::vec3 normal, glm::vec3 pointPlane, glm::vec3 pointCheck) {
+		//eq del plano suelo: x + 5 = 0
+		return (pointCheck.x + 5);
+	}
+	int checkPointOnPlaneGroundI(glm::vec3 normal, glm::vec3 pointPlane, glm::vec3 pointCheck) {
+		//eq del plano suelo: x + 5 = 0
+		return (pointCheck.x + 5) + planeD(normal, pointPlane);
+	}
+
+}
+
 namespace Cube {
 
 	extern void setupCube();
@@ -96,176 +228,7 @@ namespace Cube {
 				vertexs[i] = glm::toMat3(mainQuat) * vertexsLocal[i] + position;
 			}
 		}
-		void detectCollisions(float dt) {
-			std::cout << "Frame | " << std::endl;
-
-			bool detectionDone = false;
-			int auxIndex;
-
-			for (int i = 0; i < 8; i++) {
-				if (vertexs[i].y < 0) {
-					if (!detectionDone) {
-						detectionDone = true;
-						auxIndex = i;
-					}
-				}
-			}
-			if (detectionDone && collisionONOFF) {
-				if (collisionHARDCODED) {
-					std::cout << "COL" ;
-					glm::vec3 normal = glm::vec3(0, 1, 0);
-					glm::vec3 impulse = glm::reflect(lastVelocity, normal) * elasticity;
-					float wSpeed = glm::length(lastAngularVelocity);
-					float vSpeed = glm::length(lastVelocity);
-
-					linearMomentum = glm::vec3(0, 0, 0);
-					angularMomentum = glm::vec3(0, 0, 0);
-					mainQuat = lastQuat;
-					position = lastPosition;
-					//velocity = lastVelocity;
-					//angularVelocity = lastAngularVelocity;
-					vertexs = vertexsLast;
-
-					totalForce = glm::vec3(0, 0, 0);
-					torque = glm::vec3(0, 0, 0);
-					//forces.push_back(ForceOnPoint(gravity, position));
-					forces.push_back(ForceOnPoint(impulse, vertexs[auxIndex]));
-
-					for (int i = 0; i < forces.size(); i++) {
-						totalForce += forces.at(i).force;
-						torque += glm::cross(forces.at(i).point - position, forces.at(i).force);
-					}
-					forces.clear();
-
-					linearMomentum +=  totalForce;
-					angularMomentum +=  torque * dt;
-
-					velocity = linearMomentum / (float)mass;
-					velocity = glm::normalize(velocity) * vSpeed;
-					position += dt * velocity;
-
-					inertiaMatrix = glm::toMat3(mainQuat) * glm::inverse(inertiaBody) * glm::transpose(glm::toMat3(mainQuat));
-					angularVelocity = inertiaMatrix * angularMomentum;
-					//angularVelocity = glm::normalize(angularVelocity) /** wSpeed*/;
-
-					//Rotacio
-					glm::quat auxAngVel = glm::quat(0, angularVelocity);
-					glm::quat dQuat = (1.f / 2.f) * auxAngVel * mainQuat;
-					mainQuat = glm::normalize(mainQuat + dt * dQuat);
-					//std::cout << glm::length(mainQuat) << std::endl;
-					//std::cout << "dQuat: " << dQuat[0] << " " << dQuat[1] << " " << dQuat[2] << " " << dQuat[3] << std::endl;
-
-					//colisions
-					updateVertexs();
-				}
-				else {
-					totalForce = glm::vec3(0, 0, 0);
-					torque = glm::vec3(0, 0, 0);
-					forces.push_back(Cube::ForceOnPoint(Cube::gravity, position));
-					totalForce += forces.at(0).force;
-					//torque += glm::cross(forces.at(0).point - position, forces.at(0).force);
-					//forces.clear();
-
-					glm::vec3 linearMomentumStart = lastLinearMomentum;
-					glm::vec3 angularMomentumStart = lastAngularMomentum;
-					glm::quat mainQuatStart = lastQuat;
-					glm::vec3 positionStart = lastPosition;
-					glm::vec3 velocityStart = lastVelocity;
-					glm::vec3 angularVelocityStart = lastAngularVelocity;
-					std::vector<glm::vec3> vertexsStart = vertexsLast;
-
-
-					float interDt = dt / 200;
-					float tFound = false;
-					float z = 0;
-					while (!tFound) {
-						linearMomentum = linearMomentumStart;
-						angularMomentum = angularMomentumStart;
-						mainQuat = mainQuatStart;
-						position = positionStart;
-						velocity = velocityStart;
-						angularVelocity = angularVelocityStart;
-						vertexs = vertexsStart;
-
-						linearMomentum += interDt * totalForce;
-						//angularMomentum += interDt * torque;
-
-						velocity = linearMomentum / (float)Cube::mass;
-						position += interDt * velocity;
-
-						inertiaMatrix = glm::toMat3(mainQuat) * glm::inverse(inertiaBody) * glm::transpose(glm::toMat3(mainQuat));
-						angularVelocity = inertiaMatrix * angularMomentum;
-
-						//Rotacio
-						glm::quat auxAngVel = glm::quat(0, angularVelocity);
-						glm::quat dQuat = (1.f / 2.f) * auxAngVel * mainQuat;
-						mainQuat = glm::normalize(mainQuat + interDt * dQuat);
-
-						//colisions
-						updateVertexs();
-
-						if (vertexs[auxIndex].y < 0) {
-							tFound = true;
-							std::cout << vertexs[auxIndex].y << std::endl;
-							std::cout << vertexsLast[auxIndex].y << std::endl;
-							std::cout << z << std::endl;
-						}
-						else {
-							z++;
-							lastQuat = mainQuat;
-							lastAngularVelocity = angularVelocity;
-							lastVelocity = velocity;
-							vertexsLast = vertexs;
-							lastPosition = position;
-							lastAngularMomentum = angularMomentum;
-							lastLinearMomentum = linearMomentum;
-							interDt += dt / 200;
-
-
-						}
-
-
-					}
-
-
-
-
-
-					glm::vec3 normal = glm::vec3(0, 1, 0);
-					glm::vec3 vComPdc = vertexs[auxIndex] - position;
-					glm::vec3 lastComPdc = vertexsLast[auxIndex] - lastPosition;
-					float auxVel;
-
-					auxVel = glm::dot(lastVelocity + glm::cross(lastAngularVelocity, lastComPdc), normal);
-
-					float j = -(1 + 1) * auxVel / ((1 / mass) + glm::dot(normal, glm::cross(inertiaMatrix * glm::cross(vComPdc, normal), vComPdc)));
-
-					glm::vec3 J = normal * j;
-
-					//std::cout << "                                                                                " << J.x << " " << J.y << " " << J.z << std::endl;
-					//std::cout << "                                                                                " << glm::cross(vComPdc, J).x << " " << glm::cross(vComPdc, J).y << " " << glm::cross(vComPdc, J).z << std::endl;
-					//std::cout << "                                                                                " << auxVel << std::endl;
-
-					//std::cout << glm::length();
-					linearMomentum = lastLinearMomentum + J;
-					angularMomentum = lastAngularMomentum + glm::cross(vComPdc, J);
-
-					//velocity = linearMomentum / (float)Cube::mass;
-					//position += interDt * velocity;
-
-
-					//inertiaMatrix = glm::toMat3(mainQuat) * glm::inverse(inertiaBody) * glm::transpose(glm::toMat3(mainQuat));
-					//angularVelocity = inertiaMatrix * angularMomentum;
-
-					////Rotacio
-					//glm::quat auxAngVel = glm::quat(0, angularVelocity);
-					//glm::quat dQuat = (1.f / 2.f) * auxAngVel * mainQuat;
-					//mainQuat = glm::normalize(mainQuat + interDt * dQuat);
-
-					//updateVertexs();
-				}
-			}
-		}
+		
 
 		void addRandomForce() {
 			initialForce = glm::vec3((rand() % maxInitialForce) - maxInitialForce / 2.f, (rand() % maxInitialForce) - maxInitialForce / 2.f, (rand() % maxInitialForce) - maxInitialForce / 2.f);
@@ -349,8 +312,258 @@ namespace Cube {
 	};
 
 }
+
 Cube::CubeStruct *ourCube;
 
+void detectColision() {
+
+
+	if (ourCube->position != ourCube->lastPosition) {
+		for (int i = 0; i < 8; i++) {
+			myData::auxPREcubeVerts[i] = myData::auxCubeVerts[i];
+			myData::auxCubeVerts[i] = glm::toMat3(ourCube->mainQuat) * myData::initialCubeVerts[i] + ourCube->position;
+			//myData::PREcubeVerts[i] += ourCube->position;
+
+		}
+		detectionDone = false;
+
+		for (int i = 0; i < 8; i++) {
+			//suelo
+			//                              inicial                                                                                    final
+			if (((glm::dot(myData::XZn, myData::auxPREcubeVerts[i]) + myData::planeD(myData::XZn, myData::aux))*(glm::dot(myData::XZn, myData::auxCubeVerts[i]) + myData::planeD(myData::XZn, myData::aux))) <= 0) {
+				std::cout << "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-->colision GROUND-" << std::endl;
+				myData::vColision[i] = true;
+				detectionDone = true;
+				myData::whichPlane = 1;
+				return;
+			}
+
+			//plano derecha
+			if (((glm::dot(myData::negYZn, myData::auxPREcubeVerts[i]) + myData::planeD(myData::negYZn, myData::aux3))*(glm::dot(myData::negYZn, myData::auxCubeVerts[i]) + myData::planeD(myData::negYZn, myData::aux3))) <= 0) {
+				std::cout << "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-->colision RIGHT-" << std::endl;
+				myData::vColision[i] = true;
+				detectionDone = true;
+				myData::whichPlane = 2;
+				return;
+			}
+
+			//plano delante
+			if (((glm::dot(myData::negXYn, myData::auxPREcubeVerts[i]) + myData::planeD(myData::negXYn, myData::aux3))*(glm::dot(myData::negXYn, myData::auxCubeVerts[i]) + myData::planeD(myData::negXYn, myData::aux3))) <= 0) {
+				std::cout << "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-->colision FRONT-" << std::endl;
+				myData::vColision[i] = true;
+				detectionDone = true;
+				myData::whichPlane = 3;
+				return;
+			}
+
+			//plano detras
+			if (((glm::dot(myData::XYn, myData::auxPREcubeVerts[i]) + myData::planeD(myData::XYn, myData::aux2))*(glm::dot(myData::XYn, myData::auxCubeVerts[i]) + myData::planeD(myData::XYn, myData::aux2))) <= 0) {
+				std::cout << "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-->colision BACK-" << std::endl;
+				myData::vColision[i] = true;
+				detectionDone = true;
+				myData::whichPlane = 4;
+				return;
+			}
+
+			//plano izquierda
+			if (((glm::dot(myData::YZn, myData::auxPREcubeVerts[i]) + myData::planeD(myData::YZn, myData::aux2))*(glm::dot(myData::YZn, myData::auxCubeVerts[i]) + myData::planeD(myData::YZn, myData::aux2))) <= 0) {
+				std::cout << "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-->colision LEFT-" << std::endl;
+				myData::vColision[i] = true;
+				detectionDone = true;
+				myData::whichPlane = 5;
+				return;
+			}
+
+			//plano arriba
+			if (((glm::dot(myData::negXZn, myData::auxPREcubeVerts[i]) + myData::planeD(myData::negXZn, myData::aux4))*(glm::dot(myData::negXZn, myData::auxCubeVerts[i]) + myData::planeD(myData::negXZn, myData::aux4))) <= 0) {
+				std::cout << "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-->colision ROOF-" << std::endl;
+				myData::vColision[i] = true;
+				detectionDone = true;
+				myData::whichPlane = 6;
+				return;
+			}
+
+		}
+	}
+
+}
+void detectCollisions(float dt) {
+	std::cout << "Frame | " << std::endl;
+	detectionDone = false;
+	int auxito = -1;
+	int auxIndex;
+
+	detectColision();
+	/*for (int i = 0; i < 8; i++) {
+		if (vertexs[i].y < 0) {
+			if (!detectionDone) {
+				detectionDone = true;
+				auxIndex = i;
+			}
+		}
+	}*/
+	if (detectionDone && Cube::collisionONOFF) {
+		if (Cube::collisionHARDCODED) {
+			std::cout << "COL";
+			glm::vec3 normal = glm::vec3(0, 1, 0);
+			glm::vec3 impulse = glm::reflect(ourCube->lastVelocity, normal) * ourCube->elasticity;
+			float wSpeed = glm::length(ourCube->lastAngularVelocity);
+			float vSpeed = glm::length(ourCube->lastVelocity);
+
+			ourCube->linearMomentum = glm::vec3(0, 0, 0);
+			ourCube->angularMomentum = glm::vec3(0, 0, 0);
+			ourCube->mainQuat = ourCube->lastQuat;
+			ourCube->position = ourCube->lastPosition;
+			//velocity = lastVelocity;
+			//angularVelocity = lastAngularVelocity;
+			ourCube->vertexs = ourCube->vertexsLast;
+
+			ourCube->totalForce = glm::vec3(0, 0, 0);
+			ourCube->torque = glm::vec3(0, 0, 0);
+			//forces.push_back(ForceOnPoint(gravity, position));
+			
+			for (int i = 0; i < 8; i++) {
+				if (myData::vColision[i]) {
+					auxito = i;
+				}
+			}
+			ourCube->forces.push_back(Cube::ForceOnPoint(impulse, ourCube->vertexs[auxito]));
+
+			for (int i = 0; i < ourCube->forces.size(); i++) {
+				ourCube->totalForce += ourCube->forces.at(i).force;
+				ourCube->torque += glm::cross(ourCube->forces.at(i).point - ourCube->position, ourCube->forces.at(i).force);
+			}
+			ourCube->forces.clear();
+
+			ourCube->linearMomentum += ourCube->totalForce;
+			ourCube->angularMomentum += ourCube->torque * dt;
+
+			ourCube->velocity = ourCube->linearMomentum / (float)Cube::mass;
+			ourCube->velocity = glm::normalize(ourCube->velocity) * vSpeed;
+			ourCube->position += dt * ourCube->velocity;
+
+			ourCube->inertiaMatrix = glm::toMat3(ourCube->mainQuat) * glm::inverse(ourCube->inertiaBody) * glm::transpose(glm::toMat3(ourCube->mainQuat));
+			ourCube->angularVelocity = ourCube->inertiaMatrix * ourCube->angularMomentum;
+			//angularVelocity = glm::normalize(angularVelocity) /** wSpeed*/;
+
+			//Rotacio
+			glm::quat auxAngVel = glm::quat(0, ourCube->angularVelocity);
+			glm::quat dQuat = (1.f / 2.f) * auxAngVel * ourCube->mainQuat;
+			ourCube->mainQuat = glm::normalize(ourCube->mainQuat + dt * dQuat);
+			//std::cout << glm::length(mainQuat) << std::endl;
+			//std::cout << "dQuat: " << dQuat[0] << " " << dQuat[1] << " " << dQuat[2] << " " << dQuat[3] << std::endl;
+
+			//colisions
+			ourCube->updateVertexs();
+		}
+		else {
+			ourCube->totalForce = glm::vec3(0, 0, 0);
+			ourCube->torque = glm::vec3(0, 0, 0);
+			ourCube->forces.push_back(Cube::ForceOnPoint(Cube::gravity, ourCube->position));
+			ourCube->totalForce += ourCube->forces.at(0).force;
+			//torque += glm::cross(forces.at(0).point - position, forces.at(0).force);
+			//forces.clear();
+
+			glm::vec3 linearMomentumStart = ourCube->lastLinearMomentum;
+			glm::vec3 angularMomentumStart = ourCube->lastAngularMomentum;
+			glm::quat mainQuatStart = ourCube->lastQuat;
+			glm::vec3 positionStart = ourCube->lastPosition;
+			glm::vec3 velocityStart = ourCube->lastVelocity;
+			glm::vec3 angularVelocityStart = ourCube->lastAngularVelocity;
+			std::vector<glm::vec3> vertexsStart = ourCube->vertexsLast;
+
+
+			float interDt = dt / 200;
+			float tFound = false;
+			float z = 0;
+			while (!tFound) {
+				ourCube->linearMomentum = linearMomentumStart;
+				ourCube->angularMomentum = angularMomentumStart;
+				ourCube->mainQuat = mainQuatStart;
+				ourCube->position = positionStart;
+				ourCube->velocity = velocityStart;
+				ourCube->angularVelocity = angularVelocityStart;
+				ourCube->vertexs = vertexsStart;
+
+				ourCube->linearMomentum += interDt * ourCube->totalForce;
+				//angularMomentum += interDt * torque;
+
+				ourCube->velocity = ourCube->linearMomentum / (float)Cube::mass;
+				ourCube->position += interDt * ourCube->velocity;
+
+				ourCube->inertiaMatrix = glm::toMat3(ourCube->mainQuat) * glm::inverse(ourCube->inertiaBody) * glm::transpose(glm::toMat3(ourCube->mainQuat));
+				ourCube->angularVelocity = ourCube->inertiaMatrix * ourCube->angularMomentum;
+
+				//Rotacio
+				glm::quat auxAngVel = glm::quat(0, ourCube->angularVelocity);
+				glm::quat dQuat = (1.f / 2.f) * auxAngVel * ourCube->mainQuat;
+				ourCube->mainQuat = glm::normalize(ourCube->mainQuat + interDt * dQuat);
+
+				//colisions
+				ourCube->updateVertexs();
+
+				if (ourCube->vertexs[auxito].y < 0) {
+					tFound = true;
+					std::cout << ourCube->vertexs[auxito].y << std::endl;
+					std::cout << ourCube->vertexsLast[auxito].y << std::endl;
+					std::cout << z << std::endl;
+				}
+				else {
+					z++;
+					ourCube->lastQuat = ourCube->mainQuat;
+					ourCube->lastAngularVelocity = ourCube->angularVelocity;
+					ourCube->lastVelocity = ourCube->velocity;
+					ourCube->vertexsLast = ourCube->vertexs;
+					ourCube->lastPosition = ourCube->position;
+					ourCube->lastAngularMomentum = ourCube->angularMomentum;
+					ourCube->lastLinearMomentum = ourCube->linearMomentum;
+					interDt += dt / 200;
+
+
+				}
+
+
+			}
+
+
+
+
+
+			glm::vec3 normal = glm::vec3(0, 1, 0);
+			glm::vec3 vComPdc = ourCube->vertexs[auxito] - ourCube->position;
+			glm::vec3 lastComPdc = ourCube->vertexsLast[auxito] - ourCube->lastPosition;
+			float auxVel;
+
+			auxVel = glm::dot(ourCube->lastVelocity + glm::cross(ourCube->lastAngularVelocity, lastComPdc), normal);
+
+			float j = -(1 + 1) * auxVel / ((1 / Cube::mass) + glm::dot(normal, glm::cross(ourCube->inertiaMatrix * glm::cross(vComPdc, normal), vComPdc)));
+
+			glm::vec3 J = normal * j;
+
+			//std::cout << "                                                                                " << J.x << " " << J.y << " " << J.z << std::endl;
+			//std::cout << "                                                                                " << glm::cross(vComPdc, J).x << " " << glm::cross(vComPdc, J).y << " " << glm::cross(vComPdc, J).z << std::endl;
+			//std::cout << "                                                                                " << auxVel << std::endl;
+
+			//std::cout << glm::length();
+			ourCube->linearMomentum = ourCube->lastLinearMomentum + J;
+			ourCube->angularMomentum = ourCube->lastAngularMomentum + glm::cross(vComPdc, J);
+
+			//velocity = linearMomentum / (float)Cube::mass;
+			//position += interDt * velocity;
+
+
+			//inertiaMatrix = glm::toMat3(mainQuat) * glm::inverse(inertiaBody) * glm::transpose(glm::toMat3(mainQuat));
+			//angularVelocity = inertiaMatrix * angularMomentum;
+
+			////Rotacio
+			//glm::quat auxAngVel = glm::quat(0, angularVelocity);
+			//glm::quat dQuat = (1.f / 2.f) * auxAngVel * mainQuat;
+			//mainQuat = glm::normalize(mainQuat + interDt * dQuat);
+
+			//updateVertexs();
+		}
+	}
+}
 void printSpecs() {
 	if (Cube::showSpecs) {
 		std::cout << "--------------------------------------------------------------------" << std::endl;
@@ -408,7 +621,12 @@ void MyPhysicsInit() {
 	
 	glm::mat4 translation = glm::translate(glm::mat4(), ourCube->position);
 	glm::mat4 scale = glm::scale(glm::mat4(), Cube::scale);
-	
+	myData::vColision = new bool[8];
+	for (int i = 0; i < 8; i++) {
+		myData::cubeVerts[i] += ourCube->position;
+		myData::auxCubeVerts[i] += ourCube->position;
+		myData::vColision[i] = false;
+	}
 	//Cube::updateCube(translation * glm::toMat4(ourCube->mainQuat)/* * scale*/);
 	
 	printSpecs();
@@ -455,7 +673,7 @@ void MyPhysicsUpdate(float dt) {
 
 			//colisions
 			ourCube->updateVertexs();
-			ourCube->detectCollisions(ourDt);
+			detectCollisions(ourDt);
 		//}
 		//else {
 		//	ourCube->velocity = ourCube->linearMomentum / (float)Cube::mass;

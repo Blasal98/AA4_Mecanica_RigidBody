@@ -390,18 +390,18 @@ void detectColision() {
 void detectCollisions(float dt) {
 	std::cout << "Frame | " << std::endl;
 	detectionDone = false;
-	int auxito = -1;
+	int auxito = 0;
 	int auxIndex;
 
 	detectColision();
-	/*for (int i = 0; i < 8; i++) {
-		if (vertexs[i].y < 0) {
+	for (int i = 0; i < 8; i++) {
+		if (myData::vColision[i]) {
 			if (!detectionDone) {
 				detectionDone = true;
-				auxIndex = i;
+				auxito = i;
 			}
 		}
-	}*/
+	}
 	if (detectionDone && Cube::collisionONOFF) {
 		if (Cube::collisionHARDCODED) {
 
@@ -423,11 +423,13 @@ void detectCollisions(float dt) {
 			ourCube->torque = glm::vec3(0, 0, 0);
 			//forces.push_back(ForceOnPoint(gravity, position));
 			
-			for (int i = 0; i < 8; i++) {
+			/*for (int i = 0; i < 8; i++) {
 				if (myData::vColision[i]) {
-					auxito = i;
+					if (!detectionDone) {
+						auxito = i;
+					}
 				}
-			}
+			}*/
 			ourCube->forces.push_back(Cube::ForceOnPoint(impulse, ourCube->vertexs[auxito]));
 
 			for (int i = 0; i < ourCube->forces.size(); i++) {

@@ -404,6 +404,7 @@ void detectCollisions(float dt) {
 	}*/
 	if (detectionDone && Cube::collisionONOFF) {
 		if (Cube::collisionHARDCODED) {
+
 			std::cout << "COL";
 			glm::vec3 normal = glm::vec3(0, 1, 0);
 			glm::vec3 impulse = glm::reflect(ourCube->lastVelocity, normal) * ourCube->elasticity;
@@ -527,26 +528,137 @@ void detectCollisions(float dt) {
 
 
 
+			if (myData::whichPlane == 1) {//GROUND
+				glm::vec3 normal = glm::vec3(0, 1, 0);
+				glm::vec3 vComPdc = ourCube->vertexs[auxito] - ourCube->position;
+				glm::vec3 lastComPdc = ourCube->vertexsLast[auxito] - ourCube->lastPosition;
+				float auxVel;
+
+				auxVel = glm::dot(ourCube->lastVelocity + glm::cross(ourCube->lastAngularVelocity, lastComPdc), normal);
+
+				float j = -(1 + 1) * auxVel / ((1 / Cube::mass) + glm::dot(normal, glm::cross(ourCube->inertiaMatrix * glm::cross(vComPdc, normal), vComPdc)));
+
+				glm::vec3 J = normal * j;
+
+				//std::cout << "                                                                                " << J.x << " " << J.y << " " << J.z << std::endl;
+				//std::cout << "                                                                                " << glm::cross(vComPdc, J).x << " " << glm::cross(vComPdc, J).y << " " << glm::cross(vComPdc, J).z << std::endl;
+				//std::cout << "                                                                                " << auxVel << std::endl;
+
+				//std::cout << glm::length();
+				ourCube->linearMomentum = ourCube->lastLinearMomentum + J;
+				ourCube->angularMomentum = ourCube->lastAngularMomentum + glm::cross(vComPdc, J);
+			}
+
+			//Las fromulas de j a partir de aqui estan mal
+			if (myData::whichPlane == 2) {//DERECHA
+				glm::vec3 normal = glm::vec3(0, 1, 0);
+				glm::vec3 vComPdc = ourCube->vertexs[auxito] - ourCube->position;
+				glm::vec3 lastComPdc = ourCube->vertexsLast[auxito] - ourCube->lastPosition;
+				float auxVel;
+
+				auxVel = glm::dot(ourCube->lastVelocity + glm::cross(ourCube->lastAngularVelocity, lastComPdc), myData::negYZn);
+
+				float j = -(1 + 1) * auxVel / ((1 / Cube::mass) + glm::dot(myData::negYZn, glm::cross(ourCube->inertiaMatrix * glm::cross(vComPdc, myData::negYZn), vComPdc)));
+
+				glm::vec3 J = myData::negYZn * j;
+
+				//std::cout << "                                                                                " << J.x << " " << J.y << " " << J.z << std::endl;
+				//std::cout << "                                                                                " << glm::cross(vComPdc, J).x << " " << glm::cross(vComPdc, J).y << " " << glm::cross(vComPdc, J).z << std::endl;
+				//std::cout << "                                                                                " << auxVel << std::endl;
+
+				//std::cout << glm::length();
+				ourCube->linearMomentum = ourCube->lastLinearMomentum + J;
+				ourCube->angularMomentum = ourCube->lastAngularMomentum + glm::cross(vComPdc, J);
+				
+			}
+
+			if (myData::whichPlane == 3) {//DELANTE
+				glm::vec3 normal = glm::vec3(0, 1, 0);
+				glm::vec3 vComPdc = ourCube->vertexs[auxito] - ourCube->position;
+				glm::vec3 lastComPdc = ourCube->vertexsLast[auxito] - ourCube->lastPosition;
+				float auxVel;
+
+				auxVel = glm::dot(ourCube->lastVelocity + glm::cross(ourCube->lastAngularVelocity, lastComPdc), myData::negXYn);
+
+				float j = -(1 + 1) * auxVel / ((1 / Cube::mass) + glm::dot(myData::negXYn, glm::cross(ourCube->inertiaMatrix * glm::cross(vComPdc, myData::negXYn), vComPdc)));
+
+				glm::vec3 J = myData::negXYn * j;
+
+				//std::cout << "                                                                                " << J.x << " " << J.y << " " << J.z << std::endl;
+				//std::cout << "                                                                                " << glm::cross(vComPdc, J).x << " " << glm::cross(vComPdc, J).y << " " << glm::cross(vComPdc, J).z << std::endl;
+				//std::cout << "                                                                                " << auxVel << std::endl;
+
+				//std::cout << glm::length();
+				ourCube->linearMomentum = ourCube->lastLinearMomentum + J;
+				ourCube->angularMomentum = ourCube->lastAngularMomentum + glm::cross(vComPdc, J);
+			}
+
+			if (myData::whichPlane == 4) {//DETRAS
+				
+				glm::vec3 normal = glm::vec3(0, 1, 0);
+				glm::vec3 vComPdc = ourCube->vertexs[auxito] - ourCube->position;
+				glm::vec3 lastComPdc = ourCube->vertexsLast[auxito] - ourCube->lastPosition;
+				float auxVel;
+
+				auxVel = glm::dot(ourCube->lastVelocity + glm::cross(ourCube->lastAngularVelocity, lastComPdc), myData::XYn);
+
+				float j = -(1 + 1) * auxVel / ((1 / Cube::mass) + glm::dot(myData::XYn, glm::cross(ourCube->inertiaMatrix * glm::cross(vComPdc, myData::XYn), vComPdc)));
+
+				glm::vec3 J = myData::XYn * j;
+
+				//std::cout << "                                                                                " << J.x << " " << J.y << " " << J.z << std::endl;
+				//std::cout << "                                                                                " << glm::cross(vComPdc, J).x << " " << glm::cross(vComPdc, J).y << " " << glm::cross(vComPdc, J).z << std::endl;
+				//std::cout << "                                                                                " << auxVel << std::endl;
+
+				//std::cout << glm::length();
+				ourCube->linearMomentum = ourCube->lastLinearMomentum + J;
+				ourCube->angularMomentum = ourCube->lastAngularMomentum + glm::cross(vComPdc, J);
+			}
+
+			if (myData::whichPlane == 5) {//IZQUIERDA
+				glm::vec3 normal = glm::vec3(0, 1, 0);
+				glm::vec3 vComPdc = ourCube->vertexs[auxito] - ourCube->position;
+				glm::vec3 lastComPdc = ourCube->vertexsLast[auxito] - ourCube->lastPosition;
+				float auxVel;
+
+				auxVel = glm::dot(ourCube->lastVelocity + glm::cross(ourCube->lastAngularVelocity, lastComPdc), myData::YZn);
+
+				float j = -(1 + 1) * auxVel / ((1 / Cube::mass) + glm::dot(myData::YZn, glm::cross(ourCube->inertiaMatrix * glm::cross(vComPdc, myData::YZn), vComPdc)));
+
+				glm::vec3 J = myData::YZn * j;
+
+				//std::cout << "                                                                                " << J.x << " " << J.y << " " << J.z << std::endl;
+				//std::cout << "                                                                                " << glm::cross(vComPdc, J).x << " " << glm::cross(vComPdc, J).y << " " << glm::cross(vComPdc, J).z << std::endl;
+				//std::cout << "                                                                                " << auxVel << std::endl;
+
+				//std::cout << glm::length();
+				ourCube->linearMomentum = ourCube->lastLinearMomentum + J;
+				ourCube->angularMomentum = ourCube->lastAngularMomentum + glm::cross(vComPdc, J);
+			}
+
+			if (myData::whichPlane == 6) {//ARRIBA
+				glm::vec3 normal = glm::vec3(0, 1, 0);
+				glm::vec3 vComPdc = ourCube->vertexs[auxito] - ourCube->position;
+				glm::vec3 lastComPdc = ourCube->vertexsLast[auxito] - ourCube->lastPosition;
+				float auxVel;
+
+				auxVel = glm::dot(ourCube->lastVelocity + glm::cross(ourCube->lastAngularVelocity, lastComPdc), myData::negXZn);
+
+				float j = -(1 + 1) * auxVel / ((1 / Cube::mass) + glm::dot(myData::negXZn, glm::cross(ourCube->inertiaMatrix * glm::cross(vComPdc, myData::negXZn), vComPdc)));
+
+				glm::vec3 J = myData::negXZn * j;
+
+				//std::cout << "                                                                                " << J.x << " " << J.y << " " << J.z << std::endl;
+				//std::cout << "                                                                                " << glm::cross(vComPdc, J).x << " " << glm::cross(vComPdc, J).y << " " << glm::cross(vComPdc, J).z << std::endl;
+				//std::cout << "                                                                                " << auxVel << std::endl;
+
+				//std::cout << glm::length();
+				ourCube->linearMomentum = ourCube->lastLinearMomentum + J;
+				ourCube->angularMomentum = ourCube->lastAngularMomentum + glm::cross(vComPdc, J);
+			}
 
 
-			glm::vec3 normal = glm::vec3(0, 1, 0);
-			glm::vec3 vComPdc = ourCube->vertexs[auxito] - ourCube->position;
-			glm::vec3 lastComPdc = ourCube->vertexsLast[auxito] - ourCube->lastPosition;
-			float auxVel;
-
-			auxVel = glm::dot(ourCube->lastVelocity + glm::cross(ourCube->lastAngularVelocity, lastComPdc), normal);
-
-			float j = -(1 + 1) * auxVel / ((1 / Cube::mass) + glm::dot(normal, glm::cross(ourCube->inertiaMatrix * glm::cross(vComPdc, normal), vComPdc)));
-
-			glm::vec3 J = normal * j;
-
-			//std::cout << "                                                                                " << J.x << " " << J.y << " " << J.z << std::endl;
-			//std::cout << "                                                                                " << glm::cross(vComPdc, J).x << " " << glm::cross(vComPdc, J).y << " " << glm::cross(vComPdc, J).z << std::endl;
-			//std::cout << "                                                                                " << auxVel << std::endl;
-
-			//std::cout << glm::length();
-			ourCube->linearMomentum = ourCube->lastLinearMomentum + J;
-			ourCube->angularMomentum = ourCube->lastAngularMomentum + glm::cross(vComPdc, J);
+			
 
 			//velocity = linearMomentum / (float)Cube::mass;
 			//position += interDt * velocity;
